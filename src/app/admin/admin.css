@@ -1,0 +1,223 @@
+/* Admin Dashboard Specific Styles - Professional Enterprise Theme */
+
+/* Admin-specific CSS variables for professional enterprise appearance */
+.admin-theme {
+  /* Professional Blue/Slate Color Palette for Admin */
+  --admin-background: oklch(0.135 0.02 240);
+  --admin-foreground: oklch(0.98 0.01 240);
+
+  /* Cards with subtle depth */
+  --admin-card: oklch(0.165 0.02 240);
+  --admin-card-foreground: oklch(0.98 0.01 240);
+
+  /* Primary - Professional Blue */
+  --admin-primary: oklch(0.55 0.22 240);
+  --admin-primary-foreground: oklch(1 0 0);
+
+  /* Secondary - Slate Gray */
+  --admin-secondary: oklch(0.25 0.015 240);
+  --admin-secondary-foreground: oklch(0.98 0.01 240);
+
+  /* Muted elements */
+  --admin-muted: oklch(0.22 0.015 240);
+  --admin-muted-foreground: oklch(0.65 0.01 240);
+
+  /* Accent - Teal for highlights */
+  --admin-accent: oklch(0.5 0.15 190);
+  --admin-accent-foreground: oklch(1 0 0);
+
+  /* Status Colors */
+  --admin-success: oklch(0.62 0.18 145);
+  --admin-warning: oklch(0.72 0.20 75);
+  --admin-error: oklch(0.55 0.22 25);
+  --admin-info: oklch(0.58 0.20 220);
+
+  /* Borders and inputs */
+  --admin-border: oklch(0.28 0.01 240);
+  --admin-input: oklch(0.19 0.02 240);
+  --admin-ring: oklch(0.55 0.22 240);
+
+  /* Sidebar specific */
+  --admin-sidebar: oklch(0.12 0.02 240);
+  --admin-sidebar-foreground: oklch(0.85 0.01 240);
+  --admin-sidebar-accent: oklch(0.18 0.02 240);
+  --admin-sidebar-border: oklch(0.25 0.01 240);
+
+  /* Chart colors - Professional palette */
+  --admin-chart-1: oklch(0.55 0.22 240);
+  --admin-chart-2: oklch(0.5 0.15 190);
+  --admin-chart-3: oklch(0.62 0.18 145);
+  --admin-chart-4: oklch(0.65 0.15 270);
+  --admin-chart-5: oklch(0.58 0.20 220);
+}
+
+/* Apply admin theme to admin routes */
+.admin-layout {
+  --background: var(--admin-background);
+  --foreground: var(--admin-foreground);
+  --card: var(--admin-card);
+  --card-foreground: var(--admin-card-foreground);
+  --popover: var(--admin-card);
+  --popover-foreground: var(--admin-card-foreground);
+  --primary: var(--admin-primary);
+  --primary-foreground: var(--admin-primary-foreground);
+  --secondary: var(--admin-secondary);
+  --secondary-foreground: var(--admin-secondary-foreground);
+  --muted: var(--admin-muted);
+  --muted-foreground: var(--admin-muted-foreground);
+  --accent: var(--admin-accent);
+  --accent-foreground: var(--admin-accent-foreground);
+  --destructive: var(--admin-error);
+  --border: var(--admin-border);
+  --input: var(--admin-input);
+  --ring: var(--admin-ring);
+
+  /* Chart colors */
+  --chart-1: var(--admin-chart-1);
+  --chart-2: var(--admin-chart-2);
+  --chart-3: var(--admin-chart-3);
+  --chart-4: var(--admin-chart-4);
+  --chart-5: var(--admin-chart-5);
+
+  /* Sidebar colors */
+  --sidebar: var(--admin-sidebar);
+  --sidebar-foreground: var(--admin-sidebar-foreground);
+  --sidebar-primary: var(--admin-primary);
+  --sidebar-primary-foreground: var(--admin-primary-foreground);
+  --sidebar-accent: var(--admin-sidebar-accent);
+  --sidebar-accent-foreground: var(--admin-foreground);
+  --sidebar-border: var(--admin-sidebar-border);
+  --sidebar-ring: var(--admin-ring);
+}
+
+/* Professional animations for admin dashboard */
+@keyframes admin-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes admin-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes connection-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+}
+
+/* Admin-specific utility classes */
+.admin-gradient {
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-accent) 100%);
+}
+
+.admin-glass {
+  background: oklch(0.2 0.02 240 / 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--admin-border);
+}
+
+.admin-glow {
+  box-shadow: 0 0 30px oklch(0.55 0.22 240 / 0.1);
+}
+
+.admin-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px oklch(0.55 0.22 240 / 0.15);
+}
+
+/* Status indicators */
+.status-online {
+  width: 8px;
+  height: 8px;
+  background: var(--admin-success);
+  border-radius: 50%;
+  animation: connection-pulse 2s infinite;
+}
+
+.status-offline {
+  width: 8px;
+  height: 8px;
+  background: var(--admin-muted);
+  border-radius: 50%;
+}
+
+.badge-pulse {
+  animation: pulse-badge 2s infinite;
+}
+
+/* Smooth transitions for real-time updates */
+.admin-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Professional scrollbar styling */
+.admin-layout ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-layout ::-webkit-scrollbar-track {
+  background: var(--admin-background);
+}
+
+.admin-layout ::-webkit-scrollbar-thumb {
+  background: var(--admin-muted);
+  border-radius: 4px;
+}
+
+.admin-layout ::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-muted-foreground);
+}
+
+/* Loading skeleton for admin */
+@keyframes admin-shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.admin-skeleton {
+  animation: admin-shimmer 2s infinite;
+  background: linear-gradient(
+    90deg,
+    var(--admin-muted) 0%,
+    var(--admin-secondary) 50%,
+    var(--admin-muted) 100%
+  );
+  background-size: 1000px 100%;
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "subscribers" ADD CONSTRAINT "subscribers_mobile_unique" UNIQUE("mobile");

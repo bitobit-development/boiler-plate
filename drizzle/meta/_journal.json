@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1759231714381,
+      "tag": "0000_flawless_ted_forrester",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1759234656860,
+      "tag": "0001_sweet_jamie_braddock",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759240688937,
+      "tag": "0002_glorious_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759334520000,
+      "tag": "0003_optimize_subscriber_indexes",
+      "breakpoints": true
+    }
+  ]
+}
