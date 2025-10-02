@@ -299,6 +299,11 @@ export default function Subscribe() {
             </button>
           </form>
         </div>
+
+        {/* Helper text - optional, remove if not needed */}
+        <p className="text-center text-gray-400 text-sm mt-6">
+          Join our exclusive community for the latest updates and offers
+        </p>
       </main>
     </div>
   );
