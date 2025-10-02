@@ -205,15 +205,16 @@ function OTPVerificationContent() {
                       inputMode="numeric"
                       pattern="[0-9]*"
                       aria-label="Verification code input"
-                      className="gap-2"
+                      className="gap-3"
                     >
-                      <InputOTPGroup className="gap-2">
+                      <InputOTPGroup className="gap-3">
                         {[0, 1, 2, 3, 4, 5].map(index => (
                           <InputOTPSlot
                             key={index}
                             index={index}
                             className={cn(
-                              "w-12 h-14 text-lg border-gray-700",
+                              "w-12 h-14 text-lg",
+                              "border border-gray-700 rounded-lg",
                               "bg-gray-800/50 text-white",
                               "focus:border-orange-500 focus:ring-orange-500",
                               "transition-all duration-200",
