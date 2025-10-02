@@ -83,7 +83,7 @@ export default function Subscribe() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <ParticleBackground />
 
-      <main className="w-full max-w-2xl py-12 sm:py-16 relative z-10">
+      <main className="w-full max-w-2xl pt-6 sm:pt-8 pb-12 sm:pb-16 relative z-10">
         {/* Logo */}
         <div className="w-full max-w-xs mx-auto mb-8">
           <Image

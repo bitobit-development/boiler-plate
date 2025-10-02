@@ -11,7 +11,7 @@ export default function Home() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <ParticleBackground />
 
-      <main className="w-full max-w-4xl flex flex-col items-center justify-center space-y-8 sm:space-y-12 py-12 sm:py-16 relative z-10">
+      <main className="w-full max-w-4xl flex flex-col items-center justify-center space-y-8 sm:space-y-12 pt-6 sm:pt-8 pb-12 sm:pb-16 relative z-10">
         {/* Logo */}
         <div className="w-full max-w-md">
           <Image
