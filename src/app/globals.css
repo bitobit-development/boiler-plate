@@ -186,3 +186,14 @@
 .particle:nth-child(18) { left: 95%; animation-duration: 13s; animation-delay: 1.5s; width: 8px; height: 8px; }
 .particle:nth-child(19) { left: 5%; animation-duration: 11s; animation-delay: 3.5s; width: 6px; height: 6px; }
 .particle:nth-child(20) { left: 12%; animation-duration: 14s; animation-delay: 2.5s; width: 10px; height: 10px; }
+
+/* Shake Animation for OTP Error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}

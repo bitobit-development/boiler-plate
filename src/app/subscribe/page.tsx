@@ -33,10 +33,13 @@ export default function Subscribe() {
       const result = await subscribeAction(data);
 
       if (result.success) {
-        // Navigate to success page with user data
-        router.push(
-          `/success?name=${encodeURIComponent(result.subscriber.name)}&email=${encodeURIComponent(result.subscriber.email)}`
-        );
+        // Store masked phone for display on OTP page
+        if (result.maskedPhone) {
+          sessionStorage.setItem('maskedPhone', result.maskedPhone);
+        }
+
+        // Navigate to OTP verification page with session ID
+        router.push(`/verify-otp?session=${result.subscriberId}`);
       } else {
         // Handle errors
         setIsSubmitting(false);

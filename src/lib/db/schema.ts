@@ -294,6 +294,12 @@ export const subscribers = pgTable("subscribers", {
   consentDataProcessing: boolean("consent_data_processing").notNull().default(true),
   consentTerms: boolean("consent_terms").notNull().default(true),
 
+  // OTP Fields for Mobile Verification
+  otpCode: varchar("otp_code", { length: 255 }), // Encrypted 6-digit OTP code
+  otpExpiresAt: timestamp("otp_expires_at"), // OTP expiration time
+  otpAttempts: integer("otp_attempts").notNull().default(0), // Failed verification attempts counter
+  otpLastSentAt: timestamp("otp_last_sent_at"), // Last OTP send timestamp
+
   // Admin Management
   notes: text("notes"),
   tags: jsonb("tags").$type<string[]>().default([]),
@@ -310,7 +316,10 @@ export const subscribers = pgTable("subscribers", {
   statusIdx: index("subscribers_status_idx").on(table.status),
   createdAtIdx: index("subscribers_created_at_idx").on(table.createdAt),
   sourceIdx: index("subscribers_source_idx").on(table.source),
-  countryIdx: index("subscribers_country_idx").on(table.country)
+  countryIdx: index("subscribers_country_idx").on(table.country),
+  // OTP-related indexes
+  otpExpiresAtIdx: index("subscribers_otp_expires_at_idx").on(table.otpExpiresAt),
+  otpLastSentAtIdx: index("subscribers_otp_last_sent_at_idx").on(table.otpLastSentAt)
 }));
 
 export const subscriberAnalytics = pgTable("subscriber_analytics", {
