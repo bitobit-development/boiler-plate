@@ -29,6 +29,13 @@
       "when": 1759334520000,
       "tag": "0003_optimize_subscriber_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759397081541,
+      "tag": "0004_add_otp_verification_fields",
+      "breakpoints": true
     }
   ]
 }

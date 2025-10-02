@@ -6,14 +6,23 @@ import { subscriptionSchema } from "@/lib/validations/subscription";
 import { eq } from "drizzle-orm";
 import { ZodError } from "zod";
 import { deletePattern, CacheKeys } from "@/lib/cache";
+import { generateOTP, hashOTP, getOTPExpiration } from "@/lib/otp";
+import { sendOTPSMS } from "@/lib/services/sms";
+
+// Helper to mask phone number for display
+function maskPhoneNumber(phone: string): string {
+  // Keep first 3 and last 4 digits, mask the rest
+  if (phone.length <= 7) return phone;
+  const firstPart = phone.substring(0, 3);
+  const lastPart = phone.substring(phone.length - 4);
+  return `${firstPart}***${lastPart}`;
+}
 
 export type SubscribeResult =
   | {
       success: true;
-      subscriber: {
-        name: string;
-        email: string;
-      };
+      subscriberId: string; // Changed: return ID for OTP verification
+      maskedPhone?: string; // Masked phone for display
     }
   | {
       success: false;
@@ -58,7 +67,28 @@ export async function subscribeAction(
       };
     }
 
-    // 4. Insert new subscriber into database
+    // 4. Generate OTP for mobile verification
+    const otpCode = generateOTP();
+    const hashedOTP = hashOTP(otpCode);
+    const otpExpiration = getOTPExpiration();
+
+    console.log(`Generated OTP for ${validatedData.mobile}: ${otpCode}`);
+
+    // 5. Send OTP via SMS
+    const smsResult = await sendOTPSMS(validatedData.mobile, otpCode);
+
+    if (!smsResult.success) {
+      console.error('Failed to send OTP SMS:', smsResult.error);
+      return {
+        success: false,
+        error: "Failed to send verification code. Please check your mobile number and try again.",
+        field: "mobile",
+      };
+    }
+
+    console.log(`OTP SMS sent successfully via ${smsResult.channel}: ${smsResult.messageId}`);
+
+    // 6. Insert new subscriber with PENDING status and OTP data
     const [newSubscriber] = await db
       .insert(subscribers)
       .values({
@@ -67,13 +97,18 @@ export async function subscribeAction(
         email: validatedData.email,
         mobile: validatedData.mobile,
         ageVerified: validatedData.ageVerified,
+        status: 'pending', // Wait for OTP verification
+        mobileVerified: false, // Not verified yet
+        otpCode: hashedOTP,
+        otpExpiresAt: otpExpiration,
+        otpAttempts: 0,
+        otpLastSentAt: new Date(),
       })
       .returning({
-        name: subscribers.name,
-        email: subscribers.email,
+        id: subscribers.id,
       });
 
-    // 5. Invalidate caches - new registration affects all cached data
+    // 7. Invalidate caches - new registration affects all cached data
     await Promise.all([
       deletePattern(CacheKeys.patterns.allRegistrations()),
       deletePattern(CacheKeys.patterns.allStats()),
@@ -81,10 +116,11 @@ export async function subscribeAction(
     ]);
     console.log('[Cache INVALIDATE] New registration - cleared all caches');
 
-    // 6. Return success with user data
+    // 8. Return success with subscriber ID for OTP verification
     return {
       success: true,
-      subscriber: newSubscriber,
+      subscriberId: newSubscriber.id,
+      maskedPhone: maskPhoneNumber(validatedData.mobile),
     };
   } catch (error) {
     // Handle Zod validation errors

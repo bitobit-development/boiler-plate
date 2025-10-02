@@ -1,90 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/db/connection';
-import { Subscriber } from '@/lib/db/models/Subscriber';
+import { NextRequest, NextResponse } from "next/server";
+import { subscribeAction } from "@/app/actions/subscribe";
+import { ZodError } from "zod";
 
-export async function POST(req: NextRequest) {
+/**
+ * API endpoint wrapper for the subscribe Server Action
+ * This endpoint now triggers OTP sending for mobile verification
+ */
+export async function POST(request: NextRequest) {
   try {
-    // Connect to database
-    await connectToDatabase();
+    const body = await request.json();
 
-    // Parse request body
-    const body = await req.json();
-    const {
-      name,
-      surname,
-      email,
-      mobile,
-      ageVerified,
-      source,
-      country,
-      campaign,
-      consentMarketing
-    } = body;
+    // Call the Server Action which handles OTP generation and sending
+    const result = await subscribeAction(body);
 
-    // Validate required fields
-    if (!name || !surname || !email || !mobile || ageVerified === undefined) {
+    if (result.success) {
+      // Return subscriberId for OTP verification step
+      return NextResponse.json(result, { status: 201 }); // 201 Created
+    }
+
+    // Return error response with field-specific errors if available
+    return NextResponse.json(result, { status: 400 });
+  } catch (error) {
+    console.error("Subscribe API error:", error);
+
+    if (error instanceof ZodError) {
+      const firstError = error.issues[0];
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        {
+          success: false,
+          error: firstError.message,
+          field: firstError.path[0]?.toString(),
+          details: error.errors
+        },
         { status: 400 }
       );
     }
 
-    // Check if email already exists
-    const existingEmail = await Subscriber.findByEmail(email);
-    if (existingEmail) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 409 }
-      );
-    }
-
-    // Check if mobile already exists
-    const existingMobile = await Subscriber.countDocuments({ mobile });
-    if (existingMobile > 0) {
-      return NextResponse.json(
-        { error: 'Mobile number already registered' },
-        { status: 409 }
-      );
-    }
-
-    // Create new subscriber
-    const newSubscriber = await Subscriber.create({
-      name,
-      surname,
-      email,
-      mobile,
-      ageVerified,
-      emailVerified: false,
-      mobileVerified: false,
-      status: 'pending',
-      source: source || 'website',
-      country: country || undefined,
-      campaign: campaign || undefined,
-      registrationIp: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1',
-      consentMarketing: consentMarketing !== undefined ? consentMarketing : false,
-      consentDataProcessing: true,
-      consentTerms: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Registration successful',
-      subscriber: {
-        id: newSubscriber.id,
-        name: newSubscriber.name,
-        surname: newSubscriber.surname,
-        email: newSubscriber.email,
-        status: newSubscriber.status
-      }
-    });
-  } catch (error) {
-    console.error('Subscribe error:', error);
     return NextResponse.json(
       {
-        error: 'An error occurred during registration',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        success: false,
+        error: "Internal server error"
       },
       { status: 500 }
     );
