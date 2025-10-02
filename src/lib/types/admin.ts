@@ -18,24 +18,39 @@ export interface AdminStats {
 
 export interface Registration {
   _id: string;
+  id?: string;
   name: string;
+  surname?: string;
   email: string;
   phone: string;
+  mobile?: string;
   companyName: string;
   companyWebsite?: string;
-  registrationType: "individual" | "business";
+  registrationType: string;
   status: "pending" | "approved" | "rejected";
+  ageVerified?: boolean;
+  emailVerified?: boolean;
+  mobileVerified?: boolean;
+  source?: string;
   notes?: string;
+  tags?: string[];
   documents?: Array<{
+    id?: string;
     name: string;
-    url: string;
-    uploadedAt: Date;
+    url?: string;
+    type?: string;
+    size?: number;
+    uploadedAt?: Date | string;
   }>;
-  submittedAt: Date;
+  customFields?: Record<string, any>;
+  submittedAt: Date | string;
   reviewedAt?: Date;
   reviewedBy?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  // Extended data
+  auditLogs?: any[];
+  statusHistory?: any[];
 }
 
 export interface AdminUser {

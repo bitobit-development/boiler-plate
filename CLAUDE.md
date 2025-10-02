@@ -92,18 +92,37 @@ src/
 
 This project uses specialized AI agents with Israeli names for easy invocation. Each agent has a specific focus area and expertise.
 
-### Current Agents
+### All Available Agents
 
-#### 🔧 **Noam** - Prompt Engineering Agent
-**Location**: `.claude/agents/tooling/noam/`
-**Use for**: Creating, optimizing, and analyzing prompts for Claude AI
+#### 🎯 Strategy
+- **Eyal** - `.claude/agents/strategy/eyal/` - Architectural planning and technical strategy
+- **Rotem** - `.claude/agents/strategy/rotem/` - Strategic planning and technical decisions
 
-**Example**: "Noam, optimize this prompt for clarity and token efficiency"
+#### 🎨 Design
+- **Tal** - `.claude/agents/design/tal/` - Senior Front-End Engineer (UI/UX, React components, Tailwind, accessibility)
+
+#### ⚙️ Engineering
+- **Adi** - `.claude/agents/engineering/adi/` - Fullstack Engineer (APIs, Server Actions, end-to-end features)
+- **Oren** - `.claude/agents/engineering/oren/` - Backend Services Engineer (microservices, specialized backend)
+- **Gal** - `.claude/agents/engineering/gal/` - Engineering specialist
+
+#### 💾 Data
+- **Gal** - `.claude/agents/data/gal/` - Database architecture and data modeling
+
+#### 🧪 Quality
+- **Uri** - `.claude/agents/quality/uri/` - Testing Engineer (TDD, test automation, coverage)
+- **Maya** - `.claude/agents/quality/maya/` - Code review and quality assurance
+
+#### 📚 Documentation
+- **Yael** - `.claude/agents/documentation/yael/` - Technical writing and documentation
+- **Amit** - `.claude/agents/documentation/amit/` - API documentation specialist
+
+#### 🔧 Tooling
+- **Noam** - `.claude/agents/tooling/noam/` - Prompt engineering and optimization
+
+### Key Agents Detail
 
 #### 🎨 **Tal** - Senior Front-End Engineer
-**Location**: `.claude/agents/design/tal/`
-**Use for**: UI/UX design, component implementation, responsive design, accessibility
-
 **What Tal does:**
 - React/Next.js component design and implementation
 - Responsive, mobile-first layouts
@@ -122,9 +141,6 @@ This project uses specialized AI agents with Israeli names for easy invocation. 
 **Example**: "Tal, design a responsive registration form with validation and accessibility"
 
 #### ⚙️ **Adi** - Fullstack Engineer
-**Location**: `.claude/agents/engineering/adi/`
-**Use for**: Complete end-to-end features, Payload CMS, MongoDB, APIs, fullstack development
-
 **What Adi does:**
 - Payload CMS collections, hooks, and endpoints
 - MongoDB schema design and operations
@@ -139,7 +155,7 @@ This project uses specialized AI agents with Israeli names for easy invocation. 
 **What Adi does NOT do:**
 - Pure UI design/styling (Tal handles this)
 - Testing (Uri handles this)
-- Documentation (Yael will handle - future)
+- Documentation (Yael and Amit handle this)
 
 **Tech Stack:**
 - Backend: Payload CMS, MongoDB, Node.js, Express
@@ -150,9 +166,6 @@ This project uses specialized AI agents with Israeli names for easy invocation. 
 **Example**: "Adi, build a user registration system with email verification and database storage"
 
 #### 🧪 **Uri** - Testing Engineer
-**Location**: `.claude/agents/quality/uri/`
-**Use for**: Test automation, TDD workflow, test coverage, integration and unit testing
-
 **What Uri does:**
 - Unit tests (functions, utilities, business logic)
 - Integration tests (APIs, Server Actions, database operations)
@@ -164,8 +177,8 @@ This project uses specialized AI agents with Israeli names for easy invocation. 
 
 **What Uri does NOT do:**
 - Writing application code (only tests)
-- Code review (Maya will handle - future)
-- Documentation (Yael will handle - future)
+- Code review (Maya handles this)
+- Documentation (Yael and Amit handle this)
 
 **Testing Philosophy:**
 - Test-Driven Development (strict TDD enforcement)
@@ -185,22 +198,18 @@ This project uses specialized AI agents with Israeli names for easy invocation. 
 
 ### Agent Documentation
 
-See `.claude/agents/README.md` for complete agent directory, future roadmap, and invocation guide.
+See `.claude/agents/README.md` for complete agent directory and invocation guide.
 
-### Future Agents
+### Typical Workflow
 
-**Strategy**: Eyal (architectural planning)
-**Engineering**: Oren (specialized backend services), Gal (database architecture)
-**Quality**: Maya (code review)
-**Documentation**: Yael (technical writing), Amit (API docs)
-
-### Current Workflow
-
-1. **Prompt Creation**: Noam optimizes prompts
-2. **UI Design**: Tal designs components
-3. **Backend + Integration**: Adi builds fullstack features
-4. **Testing**: Uri writes comprehensive test coverage
-5. **Documentation**: Manual (Yael coming soon)
+1. **Strategy**: Eyal/Rotem plan architecture and technical approach
+2. **Data Design**: Gal designs database schema and data models
+3. **UI Design**: Tal designs and implements components
+4. **Backend**: Adi/Oren build APIs, Server Actions, and integrations
+5. **Testing**: Uri writes comprehensive test coverage
+6. **Quality**: Maya reviews code quality
+7. **Documentation**: Yael/Amit create technical and API documentation
+8. **Optimization**: Noam optimizes AI prompts and workflows
 
 ## Project Context
 This appears to be a fresh Next.js boilerplate with shadcn/ui integration, ready for cannabis industry registration application development based on user requirements.

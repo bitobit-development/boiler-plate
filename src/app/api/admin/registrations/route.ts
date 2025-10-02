@@ -57,6 +57,7 @@ async function getRegistrations(req: AuthenticatedRequest) {
       CacheTTL.registrations, // 2 minutes
       async () => {
         // This function only runs on cache MISS
+        // Audit logging happens OUTSIDE this function (for every request)
         return await fetchRegistrationsFromDB({
           page,
           limit,
@@ -66,11 +67,29 @@ async function getRegistrations(req: AuthenticatedRequest) {
           sortBy,
           sortOrder,
           startDate,
-          endDate,
-          req
+          endDate
         });
       }
     );
+
+    // Log access for EVERY request (not just cache misses)
+    // Using background fire-and-forget to avoid blocking response
+    AuditLog.create({
+      adminUserId: req.user.userId,
+      adminEmail: req.user.email,
+      adminRole: req.user.role,
+      action: 'read',
+      entityType: 'registration',
+      description: 'Viewed registration list',
+      metadata: {
+        page,
+        limit,
+        filters: { search, status, source, startDate, endDate },
+        resultsCount: cachedData.registrations?.length || 0,
+      },
+      ipAddress: req.headers.get('x-forwarded-for') || '::1',
+      userAgent: req.headers.get('user-agent') || 'unknown',
+    }).catch(err => console.error('[Audit Log Error]:', err));
 
     return NextResponse.json(cachedData);
   } catch (error) {
@@ -84,6 +103,9 @@ async function getRegistrations(req: AuthenticatedRequest) {
 
 /**
  * Fetch registrations from database (called on cache MISS)
+ *
+ * @param params - Query parameters for filtering and pagination
+ * @returns Registrations data ready to be cached
  */
 async function fetchRegistrationsFromDB(params: {
   page: number;
@@ -95,9 +117,8 @@ async function fetchRegistrationsFromDB(params: {
   sortOrder: string;
   startDate: string | null;
   endDate: string | null;
-  req: AuthenticatedRequest;
 }) {
-  const { page, limit, search, status, source, sortBy, sortOrder, startDate, endDate, req } = params;
+  const { page, limit, search, status, source, sortBy, sortOrder, startDate, endDate } = params;
   const startTime = Date.now();
 
   // Build query conditions using Drizzle ORM
@@ -190,24 +211,6 @@ async function fetchRegistrationsFromDB(params: {
     documents: sub.customFields?.documents as any[] || [],
     customFields: sub.customFields || {}
   }));
-
-  // Log access
-  await AuditLog.create({
-    adminUserId: req.user.userId,
-    adminEmail: req.user.email,
-    adminRole: req.user.role,
-    action: 'read',
-    entityType: 'registration',
-    description: 'Viewed registration list',
-    metadata: {
-      page,
-      limit,
-      filters: { search, status, source, startDate, endDate },
-      resultsCount: registrations.length,
-    },
-    ipAddress: req.headers.get('x-forwarded-for') || '::1',
-    userAgent: req.headers.get('user-agent') || 'unknown',
-  });
 
   const endTime = Date.now();
   console.log(`[Registrations] Fetched from database in ${endTime - startTime}ms`);

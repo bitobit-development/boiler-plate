@@ -62,6 +62,7 @@ import { useRegistrations } from "@/lib/hooks/useAdminData";
 import { adminApi } from "@/lib/api/admin";
 import { toast } from "@/hooks/use-toast";
 import { Registration } from "@/lib/types/admin";
+import { RegistrationDetailsSheet } from "@/components/admin/registrations/RegistrationDetailsSheet";
 
 const statusConfig = {
   pending: {
@@ -90,6 +91,7 @@ export default function RegistrationsPage() {
   const [sortBy, setSortBy] = useState<string>("submittedAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [reviewAction, setReviewAction] = useState<"approved" | "rejected" | null>(null);
@@ -166,11 +168,17 @@ export default function RegistrationsPage() {
     setSelectedRegistrations([]);
   };
 
+  const handleViewDetails = (registration: Registration) => {
+    setSelectedRegistration(registration);
+    setDetailsSheetOpen(true);
+  };
+
   const handleReview = (registration: Registration, action: "approved" | "rejected") => {
     setSelectedRegistration(registration);
     setReviewAction(action);
     setReviewNotes("");
     setReviewDialogOpen(true);
+    setDetailsSheetOpen(false); // Close details sheet if open
   };
 
   const handleSubmitReview = async () => {
@@ -368,7 +376,7 @@ export default function RegistrationsPage() {
                           "transition-colors cursor-pointer hover:bg-muted/50",
                           selectedRegistrations.includes(registration._id) && "bg-muted/50"
                         )}
-                        onClick={() => router.push(`/admin/registrations/${registration._id}`)}
+                        onClick={() => handleViewDetails(registration)}
                       >
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox
@@ -420,7 +428,7 @@ export default function RegistrationsPage() {
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                onClick={() => router.push(`/admin/registrations/${registration._id}`)}
+                                onClick={() => handleViewDetails(registration)}
                               >
                                 View Details
                               </DropdownMenuItem>
@@ -519,6 +527,15 @@ export default function RegistrationsPage() {
         </CardContent>
       </Card>
 
+      {/* Details Sheet */}
+      <RegistrationDetailsSheet
+        registration={selectedRegistration}
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        onApprove={(reg) => handleReview(reg, "approved")}
+        onReject={(reg) => handleReview(reg, "rejected")}
+      />
+
       {/* Review Dialog */}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
         <DialogContent>
@@ -534,10 +551,10 @@ export default function RegistrationsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="notes">Review Notes</Label>
+              <Label htmlFor="notes">Review Notes (Optional)</Label>
               <Textarea
                 id="notes"
-                placeholder="Add any notes about this decision..."
+                placeholder="Add any notes about this decision (optional)..."
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
                 className="mt-2"

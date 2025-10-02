@@ -95,11 +95,26 @@ export function useRegistrations(params?: {
   const [error, setError] = useState<string | null>(null);
   const { socket } = useSocket();
 
+  // Destructure params to stable primitive values
+  const page = params?.page;
+  const limit = params?.limit;
+  const search = params?.search;
+  const status = params?.status;
+  const sortBy = params?.sortBy;
+  const sortOrder = params?.sortOrder;
+
   const fetchRegistrations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const result = await adminApi.getRegistrations(params);
+      const result = await adminApi.getRegistrations({
+        page,
+        limit,
+        search,
+        status,
+        sortBy,
+        sortOrder,
+      });
       setData(result);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch registrations";
@@ -114,13 +129,13 @@ export function useRegistrations(params?: {
       setData({
         registrations: [],
         total: 0,
-        page: params?.page || 1,
+        page: page || 1,
         totalPages: 0,
       });
     } finally {
       setLoading(false);
     }
-  }, [params]);
+  }, [page, limit, search, status, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchRegistrations();
@@ -135,12 +150,12 @@ export function useRegistrations(params?: {
         if (!prev) return null;
 
         // Add to the beginning if on first page
-        if (params?.page === 1 || !params?.page) {
+        if (page === 1 || !page) {
           return {
             ...prev,
             registrations: [registration, ...prev.registrations].slice(
               0,
-              params?.limit || 10
+              limit || 10
             ),
             total: prev.total + 1,
           };
@@ -189,7 +204,7 @@ export function useRegistrations(params?: {
       socket.off("registration:update", handleRegistrationUpdate);
       socket.off("registration:delete", handleRegistrationDelete);
     };
-  }, [socket, data, params]);
+  }, [socket, data, page, limit]);
 
   const updateStatus = async (
     id: string,
