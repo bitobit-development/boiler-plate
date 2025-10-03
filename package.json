@@ -23,6 +23,9 @@
     "db:seed": "node ./scripts/seed.mjs",
     "db:seed:admin": "node ./scripts/seed-admin.mjs",
     "db:seed:products": "tsx ./scripts/seed-products.ts",
+    "products:check": "tsx ./scripts/check-products.ts",
+    "products:generate-images": "tsx ./scripts/generate-product-images.ts",
+    "products:verify-images": "tsx ./scripts/verify-images.ts",
     "admin:start": "./scripts/start-admin.sh",
     "admin:test": "node ./scripts/test-admin-integration.js",
     "socket:dev": "node server.js"
@@ -56,6 +59,7 @@
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "next-themes": "^0.4.6",
+    "openai": "^6.1.0",
     "postgres": "^3.4.7",
     "rate-limiter-flexible": "^8.0.1",
     "react": "19.1.0",

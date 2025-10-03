@@ -111,7 +111,7 @@ export function MembershipBanner({
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/register">
+              <Link href="/subscribe">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-8 shadow-lg shadow-amber-500/25 group"
@@ -171,7 +171,7 @@ export function MembershipBanner({
             </span>
           </div>
           <div className="flex gap-2 ml-4">
-            <Link href="/register">
+            <Link href="/subscribe">
               <Button size="sm" className="bg-amber-600 hover:bg-amber-500 text-white">
                 Join Now
               </Button>
@@ -235,7 +235,7 @@ export function MembershipBanner({
             </div>
           </div>
 
-          <Link href="/register">
+          <Link href="/subscribe">
             <Button className="w-full bg-white text-amber-600 hover:bg-white/90 font-semibold">
               Become a Member
               <ChevronRight className="h-4 w-4 ml-1" />

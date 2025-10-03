@@ -270,9 +270,9 @@ export async function getProducts(
     const formattedProducts = productsResult.map((row) => ({
       ...row.products,
       category: row.product_categories,
-      // Hide prices for non-members
-      price: isMember ? row.products.price : null,
-      comparePrice: isMember ? row.products.comparePrice : null,
+      // Show prices to everyone, but require membership to purchase
+      price: row.products.price,
+      comparePrice: row.products.comparePrice,
       costPrice: undefined, // Never expose cost price to public
     })) as ProductWithCategory[];
 
@@ -331,9 +331,9 @@ export async function getProductBySlug(
     const product: ProductWithCategory = {
       ...result.products,
       category: result.product_categories,
-      // Hide prices for non-members
-      price: isMember ? result.products.price : null,
-      comparePrice: isMember ? result.products.comparePrice : null,
+      // Show prices to everyone, but require membership to purchase
+      price: result.products.price,
+      comparePrice: result.products.comparePrice,
       costPrice: undefined, // Never expose cost price
     };
 

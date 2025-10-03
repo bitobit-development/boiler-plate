@@ -21,12 +21,15 @@ export function PriceDisplay({
   showCurrency = true,
   className,
 }: PriceDisplayProps) {
-  // Format price in Rands
+  // Format price in Rands (convert from cents)
   const formatPrice = (amount: number) => {
+    // Convert from cents to rands
+    const rands = amount / 100;
+
     const formatted = new Intl.NumberFormat("en-ZA", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(rands);
 
     return showCurrency ? `R${formatted}` : formatted;
   };
@@ -46,21 +49,20 @@ export function PriceDisplay({
     xl: "text-3xl",
   };
 
-  // If not a member, show locked state
-  if (!isMember || price === null) {
+  // If price is null, show placeholder
+  if (price === null) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800 rounded-lg backdrop-blur-sm">
-          <Lock className="h-3.5 w-3.5 text-amber-500" />
           <span className={cn("font-medium text-zinc-400", sizeClasses[size])}>
-            Members Only
+            Price Not Available
           </span>
         </div>
       </div>
     );
   }
 
-  // Member can see prices
+  // Show prices to everyone (members and non-members)
   return (
     <div className={cn("flex items-center gap-2", className)}>
       {comparePrice && comparePrice > price && (

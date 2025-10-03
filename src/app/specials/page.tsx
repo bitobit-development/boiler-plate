@@ -73,7 +73,14 @@ export default async function SpecialsPage({ searchParams }: PageProps) {
           </div>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
             Discover South Africa's finest selection of cannabis products.
-            {!isMember && " Join the Hive to unlock exclusive member pricing."}
+            {!isMember && (
+              <>
+                {" "}
+                <span className="text-amber-400 font-semibold">
+                  Subscribe to purchase - prices visible to all!
+                </span>
+              </>
+            )}
           </p>
         </div>
 

@@ -61,13 +61,13 @@ function SuccessContent() {
           </p>
         </div>
 
-        {/* Return Home Button */}
+        {/* Check Products Button */}
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/specials")}
           className="mt-8 bg-orange-500 text-white font-semibold text-base sm:text-lg px-8 sm:px-12 py-3 sm:py-4 rounded-full glow-pulse hover:scale-105 transition-transform duration-300 ease-in-out min-h-[48px] cursor-pointer"
           type="button"
         >
-          Return Home
+          Check Our Products
         </button>
       </main>
     </div>

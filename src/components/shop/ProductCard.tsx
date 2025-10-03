@@ -6,18 +6,24 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PriceDisplay } from "./PriceDisplay";
 import {
-  Package,
-  Zap,
-  Sparkles,
   ShoppingCart,
-  Eye,
-  Cannabis,
-  Cookie,
-  Cigarette,
-  Droplet,
+  Crown,
+  Sparkles,
 } from "lucide-react";
+import {
+  getProductIcon,
+  getProductTypeLabel,
+  getStrainType,
+  getStrainTypeLabel,
+  strainIcons,
+  typeColors,
+  strainColors,
+  getAnimationClasses,
+  getIconSize,
+} from "@/lib/product-icons";
 import type { ProductWithCategory } from "@/types/products";
 
 interface ProductCardProps {
@@ -27,16 +33,6 @@ interface ProductCardProps {
   className?: string;
 }
 
-// Icon mapping for product types
-const productTypeIcons: Record<string, React.ReactNode> = {
-  flower: <Cannabis className="h-4 w-4" />,
-  "pre_roll": <Cigarette className="h-4 w-4" />,
-  edible: <Cookie className="h-4 w-4" />,
-  concentrate: <Droplet className="h-4 w-4" />,
-  vape: <Zap className="h-4 w-4" />,
-  accessory: <Package className="h-4 w-4" />,
-};
-
 export function ProductCard({
   product,
   isMember = false,
@@ -45,20 +41,15 @@ export function ProductCard({
 }: ProductCardProps) {
   const isInStock = product.quantity > 0;
   const categoryName = product.category?.name || "Cannabis";
-  const typeIcon = productTypeIcons[product.productType] || <Package className="h-4 w-4" />;
 
-  // Generate gradient based on category
-  const getCategoryGradient = (category: string) => {
-    const gradients: Record<string, string> = {
-      "Pre-rolls": "from-amber-600 to-orange-600",
-      "Dabs": "from-purple-600 to-pink-600",
-      "Edibles": "from-green-600 to-emerald-600",
-      "THC Vapes": "from-blue-600 to-cyan-600",
-      "Flower": "from-lime-600 to-green-600",
-      "Concentrates": "from-indigo-600 to-purple-600",
-    };
-    return gradients[category] || "from-zinc-600 to-zinc-700";
-  };
+  // Get dynamic icon based on product type and ID
+  const ProductIcon = getProductIcon(product.productType, product.id);
+  const productTypeColor = typeColors[product.productType] || typeColors.accessory;
+
+  // Get strain information if available
+  const strainType = product.strain ? getStrainType(product.strain) : null;
+  const StrainIcon = strainType ? strainIcons[strainType] : null;
+  const strainColor = strainType ? strainColors[strainType] : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -68,105 +59,185 @@ export function ProductCard({
   };
 
   return (
-    <Card
-      className={cn(
-        "group relative overflow-hidden border-zinc-800 bg-zinc-900/50 backdrop-blur-sm transition-all duration-300",
-        "hover:border-zinc-700 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1",
-        !isMember && "cursor-pointer",
-        className
-      )}
-    >
-      {/* Image/Icon Section */}
-      <CardHeader className="relative p-0 h-48 bg-gradient-to-br from-zinc-900 to-zinc-800 overflow-hidden">
-        <div className={cn(
-          "absolute inset-0 bg-gradient-to-br opacity-20",
-          getCategoryGradient(categoryName)
-        )} />
-
-        {/* Product Type Icon */}
-        <div className="absolute top-4 left-4 p-2 bg-black/50 backdrop-blur-sm rounded-lg">
-          {typeIcon}
-        </div>
-
-        {/* Status Badges */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2">
-          {product.isNew && (
-            <Badge className="bg-emerald-500/90 text-white border-0">
-              <Sparkles className="h-3 w-3 mr-1" />
-              New
-            </Badge>
+    <TooltipProvider>
+      <Card
+        className={cn(
+          "group relative overflow-hidden border-zinc-800 bg-zinc-900/50 backdrop-blur-sm transition-all duration-300",
+          "hover:border-zinc-700 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1",
+          !isMember && "cursor-pointer",
+          className
+        )}
+      >
+        {/* Image/Icon Section */}
+        <CardHeader className="relative p-0 h-48 bg-gradient-to-br from-zinc-900 to-zinc-800 overflow-hidden">
+          {product.imageUrl ? (
+            <>
+              {/* Product Image */}
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Gradient overlay for better badge visibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40" />
+            </>
+          ) : (
+            <>
+              {/* Fallback gradient background with product type colors */}
+              <div className={cn(
+                "absolute inset-0 bg-gradient-to-br opacity-30",
+                productTypeColor.gradient
+              )} />
+              {/* Large Product Type Icon as background */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <ProductIcon className={cn("w-24 h-24 opacity-10", productTypeColor.text)} />
+              </div>
+            </>
           )}
-          {product.isFeatured && (
-            <Badge className="bg-amber-500/90 text-white border-0">
-              <Zap className="h-3 w-3 mr-1" />
-              Featured
-            </Badge>
-          )}
-          {!isInStock && (
-            <Badge variant="destructive">Out of Stock</Badge>
-          )}
-        </div>
 
-        {/* Membership Overlay */}
-        {!isMember && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="text-center space-y-2">
-              <Eye className="h-8 w-8 mx-auto text-amber-500" />
-              <p className="text-sm font-medium text-white">Join to View Prices</p>
-            </div>
+          {/* Enhanced Product Type Icon Badge with Tooltip */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={cn(
+                "absolute top-4 left-4 p-2.5 rounded-xl z-10 transition-all duration-200",
+                "bg-gradient-to-br backdrop-blur-sm border border-white/10",
+                productTypeColor.gradient,
+                "shadow-lg",
+                productTypeColor.shadow,
+                "group-hover:scale-110 group-hover:rotate-3",
+                getAnimationClasses(product.isNew, product.isFeatured)
+              )}>
+                <ProductIcon
+                  className={cn(
+                    "text-white",
+                    getIconSize("badge")
+                  )}
+                  aria-label={`${getProductTypeLabel(product.productType)} product`}
+                />
+                {/* Strain indicator (small secondary icon) */}
+                {StrainIcon && strainColor && (
+                  <StrainIcon
+                    className="w-3 h-3 text-white/80 absolute -bottom-1 -right-1 bg-black/50 rounded-full p-0.5"
+                    aria-label={getStrainTypeLabel(product.strain || "")}
+                  />
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs">
+              <div className="space-y-1">
+                <p className="font-medium">{getProductTypeLabel(product.productType)}</p>
+                {product.strain && (
+                  <p className="text-xs text-muted-foreground">
+                    {getStrainTypeLabel(product.strain)}
+                  </p>
+                )}
+                {product.potency && (
+                  <p className="text-xs text-muted-foreground">
+                    Potency: {product.potency}
+                  </p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Status Badges with enhanced styling */}
+          <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+            {product.isNew && (
+              <Badge className={cn(
+                "bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0",
+                "shadow-lg shadow-emerald-500/30",
+                "animate-pulse"
+              )}>
+                <Sparkles className="h-3 w-3 mr-1" />
+                New
+              </Badge>
+            )}
+            {product.isFeatured && (
+              <Badge className={cn(
+                "bg-gradient-to-r from-amber-500 to-yellow-600 text-white border-0",
+                "shadow-lg shadow-amber-500/30",
+                "shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+              )}>
+                <Crown className="h-3 w-3 mr-1" />
+                Featured
+              </Badge>
+            )}
+            {!isInStock && (
+              <Badge variant="destructive">Out of Stock</Badge>
+            )}
           </div>
-        )}
+        </CardHeader>
 
-        {/* Product Image Placeholder */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-6xl opacity-10">{typeIcon}</div>
-        </div>
-      </CardHeader>
+        <CardContent className="p-4 space-y-3">
+          {/* Category Badge with gradient */}
+          <Badge
+            variant="outline"
+            className={cn(
+              "w-fit text-xs font-medium text-white border-0",
+              "bg-gradient-to-r",
+              productTypeColor.gradient,
+              "shadow-sm",
+              productTypeColor.shadow
+            )}
+          >
+            {categoryName}
+          </Badge>
 
-      <CardContent className="p-4 space-y-3">
-        {/* Category Badge */}
-        <Badge
-          variant="outline"
-          className={cn(
-            "w-fit text-xs font-medium bg-gradient-to-r text-white border-0",
-            getCategoryGradient(categoryName),
-            "bg-opacity-10"
+          {/* Product Name */}
+          <h3 className="font-semibold text-lg text-white line-clamp-2 min-h-[3.5rem]">
+            {product.name}
+          </h3>
+
+          {/* Description */}
+          {product.shortDescription && (
+            <p className="text-sm text-zinc-400 line-clamp-2 min-h-[2.5rem]">
+              {product.shortDescription}
+            </p>
           )}
-        >
-          {categoryName}
-        </Badge>
 
-        {/* Product Name */}
-        <h3 className="font-semibold text-lg text-white line-clamp-2 min-h-[3.5rem]">
-          {product.name}
-        </h3>
-
-        {/* Description */}
-        {product.shortDescription && (
-          <p className="text-sm text-zinc-400 line-clamp-2 min-h-[2.5rem]">
-            {product.shortDescription}
-          </p>
-        )}
-
-        {/* Product Attributes */}
-        <div className="flex flex-wrap gap-2">
-          {product.weight && (
-            <Badge variant="secondary" className="text-xs">
-              {product.weight}
-            </Badge>
-          )}
-          {product.potency && (
-            <Badge variant="secondary" className="text-xs">
-              {product.potency}
-            </Badge>
-          )}
-          {product.strain && (
-            <Badge variant="secondary" className="text-xs">
-              {product.strain}
-            </Badge>
-          )}
-        </div>
-      </CardContent>
+          {/* Enhanced Product Attributes with colors */}
+          <div className="flex flex-wrap gap-2">
+            {product.weight && (
+              <Badge variant="secondary" className="text-xs bg-zinc-800/50 border-zinc-700">
+                {product.weight}
+              </Badge>
+            )}
+            {product.potency && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="secondary" className="text-xs bg-violet-950/30 border-violet-800/50 text-violet-300">
+                    {product.potency}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">THC/CBD Content</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {product.strain && strainColor && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "text-xs border transition-all duration-200",
+                      "hover:scale-105",
+                      strainColor.text,
+                      "bg-gradient-to-r opacity-90",
+                      strainColor.gradient
+                    )}
+                  >
+                    <StrainIcon className="w-3 h-3 mr-1" />
+                    {product.strain}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{getStrainTypeLabel(product.strain)}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </CardContent>
 
       <CardFooter className="p-4 pt-0 flex flex-col gap-3">
         {/* Price Display */}
@@ -200,13 +271,14 @@ export function ProductCard({
             )}
           </Button>
         ) : (
-          <Link href="/register" className="w-full">
+          <Link href="/subscribe" className="w-full">
             <Button className="w-full bg-amber-600 hover:bg-amber-500 text-white">
-              Join to Purchase
+              Subscribe to Purchase
             </Button>
           </Link>
         )}
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </TooltipProvider>
   );
 }
