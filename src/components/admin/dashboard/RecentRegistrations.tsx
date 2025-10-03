@@ -132,7 +132,7 @@ export function RecentRegistrations() {
         <p className="text-sm text-muted-foreground text-center py-8">No registrations found</p>
       ) : (
         registrations.map((registration) => {
-        const status = statusConfig[registration.status];
+        const status = statusConfig[registration.status] || statusConfig.pending;
         const StatusIcon = status.icon;
 
         return (
