@@ -145,18 +145,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate tokens
-    const { accessToken, refreshToken, accessExpiresAt, refreshExpiresAt } = generateTokens(user);
-
-    // Create session
+    // Create session first (with placeholder tokens) to get session ID
     const session = await AdminSession.create({
       adminUserId: user.id,
-      accessToken,
-      refreshToken,
-      expiresAt: refreshExpiresAt,
+      accessToken: 'placeholder',
+      refreshToken: 'placeholder',
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 60 minutes
       ipAddress: ip,
       userAgent: request.headers.get('user-agent') || 'unknown',
       status: 'active'
+    });
+
+    // Generate tokens with session ID
+    const { accessToken, refreshToken, accessExpiresAt, refreshExpiresAt } = generateTokens(user, session.id);
+
+    // Update session with real tokens
+    await AdminSession.updateById(session.id, {
+      accessToken,
+      refreshToken,
+      expiresAt: refreshExpiresAt
     });
 
     // Update user login info
@@ -205,12 +212,12 @@ export async function POST(request: NextRequest) {
       sessionId: session.id
     });
 
-    // Set HTTP-only cookies for tokens
+    // Set HTTP-only cookies for tokens with extended session
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: 60 * 60, // 60 minutes (extended from 15 minutes)
       path: '/'
     });
 

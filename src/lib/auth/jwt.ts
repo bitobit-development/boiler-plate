@@ -1,11 +1,41 @@
 import jwt from 'jsonwebtoken';
 import { AdminUserType } from '@/lib/db/models/AdminUser';
 
-// JWT Configuration
+// JWT Configuration Constants
+/**
+ * JWT configuration with extended session support
+ * Access token duration extended to 60 minutes for better admin UX
+ * @see https://jwt.io/introduction/
+ */
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'default-access-secret';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'default-refresh-secret';
-const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';
+
+/**
+ * Access token expiry: 60 minutes (extended from 15m)
+ * Can be overridden via JWT_ACCESS_EXPIRY environment variable
+ */
+const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '60m';
+
+/**
+ * Refresh token expiry: 7 days
+ * Can be overridden via JWT_REFRESH_EXPIRY environment variable
+ */
 const REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
+
+/**
+ * Session configuration
+ * Used for activity monitoring and session management
+ */
+export const SESSION_CONFIG = {
+  // Session timeout in seconds (60 minutes)
+  SESSION_TIMEOUT: parseInt(process.env.ADMIN_SESSION_TIMEOUT || '3600'),
+  // Warning threshold in seconds (5 minutes before expiry)
+  WARNING_THRESHOLD: parseInt(process.env.ADMIN_SESSION_WARNING_THRESHOLD || '300'),
+  // Activity check interval in seconds (check every 5 minutes)
+  ACTIVITY_CHECK_INTERVAL: parseInt(process.env.ADMIN_ACTIVITY_CHECK_INTERVAL || '300'),
+  // Maximum inactive time in seconds (30 minutes)
+  MAX_INACTIVE_TIME: parseInt(process.env.ADMIN_MAX_INACTIVE_TIME || '1800')
+};
 
 export interface TokenPayload {
   userId: string;

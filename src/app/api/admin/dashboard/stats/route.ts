@@ -21,11 +21,11 @@ async function getDashboardStats(req: AuthenticatedRequest) {
     const cacheKey = CacheKeys.dashboardStats();
     const cachedStats = await withCache<AdminStats>(
       cacheKey,
-      CacheTTL.stats, // 5 minutes
       async () => {
         // This function only runs on cache MISS
         return await fetchDashboardStatsFromDB();
-      }
+      },
+      CacheTTL.stats // 5 minutes
     );
 
     return NextResponse.json(cachedStats);
@@ -54,108 +54,106 @@ async function getDashboardStats(req: AuthenticatedRequest) {
 
 /**
  * Fetch dashboard stats from database (called on cache MISS)
+ * Optimized with CTE (Common Table Expression) for better performance
  */
 async function fetchDashboardStatsFromDB(): Promise<AdminStats> {
   const startTime = Date.now();
 
-    // Get date ranges
-    const now = new Date();
-    const today = new Date(now.setHours(0, 0, 0, 0));
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  // Get date ranges
+  const now = new Date();
+  const today = new Date(now.setHours(0, 0, 0, 0));
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Execute all queries in parallel for better performance
-    const [
-      totalRegistrationsResult,
-      pendingReviewsResult,
-      approvedTodayResult,
-      rejectedTodayResult,
-      activeAdminsResult
-    ] = await Promise.all([
-      db.select({ count: sql<number>`count(*)` }).from(subscribers),
-      db.select({ count: sql<number>`count(*)` }).from(subscribers).where(eq(subscribers.status, 'pending')),
-      db.select({ count: sql<number>`count(*)` }).from(subscribers).where(and(
-        eq(subscribers.status, 'active'),
-        gte(subscribers.createdAt, today),
-        lt(subscribers.createdAt, tomorrow)
-      )),
-      db.select({ count: sql<number>`count(*)` }).from(subscribers).where(and(
-        eq(subscribers.status, 'suspended'),
-        gte(subscribers.createdAt, today),
-        lt(subscribers.createdAt, tomorrow)
-      )),
-      db.select({ count: sql<number>`count(*)` }).from(adminUsers).where(eq(adminUsers.isActive, true))
-    ]);
+  // Convert dates to ISO strings for postgres
+  const todayISO = today.toISOString();
+  const tomorrowISO = tomorrow.toISOString();
+  const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
-    const totalRegistrations = Number(totalRegistrationsResult[0]?.count || 0);
-    const pendingReviews = Number(pendingReviewsResult[0]?.count || 0);
-    const approvedToday = Number(approvedTodayResult[0]?.count || 0);
-    const rejectedToday = Number(rejectedTodayResult[0]?.count || 0);
-    const activeAdmins = Number(activeAdminsResult[0]?.count || 0);
+  // Single optimized query using CTE for all stats
+  const statsQuery = await db.execute(sql`
+    WITH stats AS (
+      SELECT
+        COUNT(*) as total_registrations,
+        COUNT(*) FILTER (WHERE status = 'pending') as pending_reviews,
+        COUNT(*) FILTER (WHERE status = 'active' AND created_at >= ${todayISO} AND created_at < ${tomorrowISO}) as approved_today,
+        COUNT(*) FILTER (WHERE status = 'suspended' AND created_at >= ${todayISO} AND created_at < ${tomorrowISO}) as rejected_today,
+        COUNT(*) FILTER (WHERE status = 'active') as approved_total,
+        COUNT(*) FILTER (WHERE status = 'suspended') as rejected_total
+      FROM subscribers
+    ),
+    admins AS (
+      SELECT COUNT(*) as active_admins
+      FROM admin_users
+      WHERE is_active = true
+    ),
+    trend AS (
+      SELECT
+        DATE(created_at) as date,
+        COUNT(*) as count
+      FROM subscribers
+      WHERE created_at >= ${thirtyDaysAgoISO}
+      GROUP BY DATE(created_at)
+      ORDER BY DATE(created_at)
+    )
+    SELECT
+      s.total_registrations,
+      s.pending_reviews,
+      s.approved_today,
+      s.rejected_today,
+      s.approved_total,
+      s.rejected_total,
+      a.active_admins,
+      json_agg(
+        json_build_object('date', t.date::text, 'count', t.count)
+        ORDER BY t.date
+      ) FILTER (WHERE t.date IS NOT NULL) as registration_trend
+    FROM stats s
+    CROSS JOIN admins a
+    LEFT JOIN trend t ON true
+    GROUP BY s.total_registrations, s.pending_reviews, s.approved_today,
+             s.rejected_today, s.approved_total, s.rejected_total, a.active_admins;
+  `);
 
-    // Get registration trend for last 30 days
-    const registrationTrendResult = await db
-      .select({
-        date: sql<string>`DATE(${subscribers.createdAt})`,
-        count: sql<number>`count(*)`
-      })
-      .from(subscribers)
-      .where(gte(subscribers.createdAt, thirtyDaysAgo))
-      .groupBy(sql`DATE(${subscribers.createdAt})`)
-      .orderBy(sql`DATE(${subscribers.createdAt})`);
+  const result = statsQuery[0] as any;
 
-    // Format registration trend data
-    const registrationTrend = registrationTrendResult.map(row => ({
-      date: row.date,
-      count: Number(row.count)
-    }));
+  // Parse registration trend
+  const trendData = (result.registration_trend || []) as Array<{ date: string; count: number }>;
 
-    // Fill in missing dates with zero counts
-    const trendMap = new Map(registrationTrend.map(item => [item.date, item.count]));
-    const completeTrend: Array<{ date: string; count: number }> = [];
+  // Fill in missing dates with zero counts
+  const trendMap = new Map(trendData.map(item => [item.date, Number(item.count)]));
+  const completeTrend: Array<{ date: string; count: number }> = [];
 
-    for (let d = new Date(thirtyDaysAgo); d <= today; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
-      completeTrend.push({
-        date: dateStr,
-        count: trendMap.get(dateStr) || 0
-      });
+  for (let d = new Date(thirtyDaysAgo); d <= today; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    completeTrend.push({
+      date: dateStr,
+      count: trendMap.get(dateStr) || 0
+    });
+  }
+
+  // Construct the response matching AdminStats interface
+  const stats: AdminStats = {
+    totalRegistrations: Number(result.total_registrations || 0),
+    pendingReviews: Number(result.pending_reviews || 0),
+    approvedToday: Number(result.approved_today || 0),
+    rejectedToday: Number(result.rejected_today || 0),
+    averageProcessingTime: 0, // Not tracked yet
+    activeAdmins: Number(result.active_admins || 0),
+    registrationTrend: completeTrend,
+    statusBreakdown: {
+      pending: Number(result.pending_reviews || 0),
+      approved: Number(result.approved_total || 0),
+      rejected: Number(result.rejected_total || 0)
     }
+  };
 
-    // Get status breakdown
-    const [approvedResult, rejectedResult] = await Promise.all([
-      db.select({ count: sql<number>`count(*)` })
-        .from(subscribers)
-        .where(eq(subscribers.status, 'active')),
-      db.select({ count: sql<number>`count(*)` })
-        .from(subscribers)
-        .where(eq(subscribers.status, 'suspended'))
-    ]);
+  const endTime = Date.now();
+  console.log(`[Dashboard Stats] Fetched from database in ${endTime - startTime}ms (optimized with CTE)`);
 
-    const statusBreakdown = {
-      pending: pendingReviews,
-      approved: Number(approvedResult[0]?.count || 0),
-      rejected: Number(rejectedResult[0]?.count || 0)
-    };
-
-    // Construct the response matching AdminStats interface
-    const stats: AdminStats = {
-      totalRegistrations,
-      pendingReviews,
-      approvedToday,
-      rejectedToday,
-      averageProcessingTime: 0, // Not tracked yet
-      activeAdmins,
-      registrationTrend: completeTrend,
-      statusBreakdown
-    };
-
-    const endTime = Date.now();
-    console.log(`[Dashboard Stats] Fetched from database in ${endTime - startTime}ms`);
-
-    return stats;
+  return stats;
 }
 
 export async function GET(req: NextRequest) {

@@ -129,7 +129,7 @@ export function RecentRegistrations() {
   return (
     <div className="space-y-4">
       {registrations.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">No registrations found</p>
+        <p className="text-sm text-muted-foreground text-center py-8">No subscribers found</p>
       ) : (
         registrations.map((registration) => {
         const status = statusConfig[registration.status] || statusConfig.pending;
@@ -196,14 +196,14 @@ export function RecentRegistrations() {
                       className="text-green-500 focus:text-green-500"
                     >
                       <CheckCircle className="mr-2 h-4 w-4" />
-                      Approve Registration
+                      Approve Subscriber
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleAction(registration.id, "reject")}
                       className="text-red-500 focus:text-red-500"
                     >
                       <XCircle className="mr-2 h-4 w-4" />
-                      Reject Registration
+                      Reject Subscriber
                     </DropdownMenuItem>
                   </>
                 )}

@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
       accessExpiresAt: tokenData.accessExpiresAt
     });
 
-    // Set new access token cookie
+    // Set new access token cookie with extended duration
     response.cookies.set('accessToken', tokenData.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: 60 * 60, // 60 minutes (extended from 15 minutes)
       path: '/'
     });
 

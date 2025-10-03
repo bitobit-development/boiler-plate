@@ -3,6 +3,7 @@ import { verifyAccessToken, extractTokenFromHeader } from './jwt';
 import { AdminUser } from '@/lib/db/models/AdminUser';
 import { AdminSession } from '@/lib/db/models/AdminSession';
 import { AuditLog } from '@/lib/db/models/AuditLog';
+import { trackSessionActivity } from './session-tracker';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -49,8 +50,19 @@ export async function validateAdminAuth(request: NextRequest): Promise<{
         return { authenticated: false, error: 'Session expired or invalid' };
       }
 
-      // Update session activity
-      await AdminSession.updateActivity(decoded.sessionId);
+      // Track session activity and handle auto-extension
+      const activityStatus = await trackSessionActivity(
+        decoded.sessionId,
+        decoded.userId,
+        decoded.email,
+        decoded.role
+      );
+
+      // Add session status to response headers if warning needed
+      if (activityStatus.shouldWarn) {
+        // This will be available to the frontend for showing warnings
+        console.log(`Session expiring soon: ${activityStatus.minutesRemaining} minutes remaining`);
+      }
     }
 
     // Get user details from database

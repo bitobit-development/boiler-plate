@@ -107,7 +107,7 @@ async function getRecentActivity(req: AuthenticatedRequest) {
 
     const statsResult = await db
       .select({
-        totalToday: sql<number>`COUNT(CASE WHEN ${auditLogs.createdAt} >= ${last24Hours} THEN 1 END)`,
+        totalToday: sql<number>`COUNT(CASE WHEN ${auditLogs.createdAt} >= ${sql`${last24Hours.toISOString()}`} THEN 1 END)`,
         totalSuccess: sql<number>`COUNT(CASE WHEN ${auditLogs.isSuccess} = true THEN 1 END)`,
         totalFailure: sql<number>`COUNT(CASE WHEN ${auditLogs.isSuccess} = false THEN 1 END)`,
         uniqueUsers: sql<number>`COUNT(DISTINCT ${auditLogs.adminUserId})`

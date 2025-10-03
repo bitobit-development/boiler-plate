@@ -144,7 +144,7 @@ export function RegistrationChart() {
       <div className="flex items-center gap-6 mt-8 justify-center">
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded-sm bg-blue-500" />
-          <span className="text-sm text-muted-foreground">New Registrations</span>
+          <span className="text-sm text-muted-foreground">New Subscribers</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded-sm bg-green-500" />

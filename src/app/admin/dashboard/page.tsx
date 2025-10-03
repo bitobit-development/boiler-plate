@@ -56,7 +56,7 @@ export default function AdminDashboard() {
             Dashboard Overview
           </h1>
           <p className="text-muted-foreground mt-2">
-            Monitor your cannabis registration system in real-time
+            Monitor your cannabis subscriber system in real-time
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -108,9 +108,9 @@ export default function AdminDashboard() {
         ) : stats ? (
           <>
             <StatsCard
-              title="Total Registrations"
+              title="Total Subscribers"
               value={(stats.totalRegistrations || 0).toLocaleString()}
-              description="All-time registrations"
+              description="All-time subscribers"
               icon={Users}
               trend={{
                 value: 12.5,
@@ -186,9 +186,9 @@ export default function AdminDashboard() {
         {/* Registration Chart */}
         <Card className="lg:col-span-4 admin-card-hover">
           <CardHeader>
-            <CardTitle>Registration Trends</CardTitle>
+            <CardTitle>Subscriber Trends</CardTitle>
             <CardDescription>
-              Daily registration volume over the last 30 days
+              Daily subscriber volume over the last 30 days
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -216,9 +216,9 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Registrations</CardTitle>
+              <CardTitle>Recent Subscribers</CardTitle>
               <CardDescription>
-                Latest user registrations requiring review
+                Latest subscribers requiring review
               </CardDescription>
             </div>
             <Button variant="outline" size="sm">

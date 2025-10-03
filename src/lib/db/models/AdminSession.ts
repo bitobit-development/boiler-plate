@@ -117,8 +117,8 @@ export const AdminSession = {
       const refreshToken = data.refreshToken || this.generateToken();
       const tokenHash = this.hashToken(accessToken);
 
-      // Set expiry time (24 hours for access token by default)
-      const expiresAt = data.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000);
+      // Set expiry time (60 minutes for session timeout)
+      const expiresAt = data.expiresAt || new Date(Date.now() + 60 * 60 * 1000);
 
       const result = await db
         .insert(adminSessions)
@@ -371,7 +371,7 @@ export const AdminSession = {
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
           tokenHash: newTokenHash,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 60 minutes extended session
           lastActivityAt: new Date()
         })
         .where(eq(adminSessions.id, session.id))
@@ -411,6 +411,78 @@ export const AdminSession = {
     } catch (error) {
       console.error('Error getting session statistics:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Check if session is inactive
+   */
+  async checkInactivity(sessionId: string, maxInactiveMinutes: number = 30): Promise<boolean> {
+    try {
+      const session = await this.findOne({ id: sessionId });
+      if (!session) return true;
+
+      const now = new Date();
+      const lastActivity = new Date(session.lastActivityAt);
+      const inactiveTime = now.getTime() - lastActivity.getTime();
+      const maxInactiveTime = maxInactiveMinutes * 60 * 1000;
+
+      return inactiveTime > maxInactiveTime;
+    } catch (error) {
+      console.error('Error checking session inactivity:', error);
+      return true;
+    }
+  },
+
+  /**
+   * Extend session expiry
+   */
+  async extendSession(sessionId: string, additionalMinutes: number = 60): Promise<AdminSessionType | null> {
+    try {
+      const session = await this.findOne({ id: sessionId });
+      if (!session || session.status !== 'active') return null;
+
+      const newExpiresAt = new Date(Date.now() + additionalMinutes * 60 * 1000);
+
+      const result = await db
+        .update(adminSessions)
+        .set({
+          expiresAt: newExpiresAt,
+          lastActivityAt: new Date()
+        })
+        .where(eq(adminSessions.id, sessionId))
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      console.error('Error extending session:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Get sessions expiring soon
+   */
+  async getExpiringSessions(minutesBeforeExpiry: number = 5): Promise<AdminSessionType[]> {
+    try {
+      const now = new Date();
+      const warningTime = new Date(now.getTime() + minutesBeforeExpiry * 60 * 1000);
+
+      const result = await db
+        .select()
+        .from(adminSessions)
+        .where(
+          and(
+            eq(adminSessions.status, 'active'),
+            gte(adminSessions.expiresAt, now),
+            lte(adminSessions.expiresAt, warningTime)
+          )
+        );
+
+      return result;
+    } catch (error) {
+      console.error('Error getting expiring sessions:', error);
+      return [];
     }
   },
 

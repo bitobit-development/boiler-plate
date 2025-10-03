@@ -43,18 +43,11 @@ async function getRegistrations(req: AuthenticatedRequest) {
     const endDate = searchParams.get('endDate');
 
     // Try to get from cache first
-    const cacheKey = CacheKeys.registrations({
-      page,
-      limit,
-      status,
-      search,
-      sortBy,
-      sortOrder
-    });
+    const cacheParams = `${page}:${limit}:${status}:${search}:${sortBy}:${sortOrder}`;
+    const cacheKey = CacheKeys.registrations(cacheParams);
 
     const cachedData = await withCache(
       cacheKey,
-      CacheTTL.registrations, // 2 minutes
       async () => {
         // This function only runs on cache MISS
         // Audit logging happens OUTSIDE this function (for every request)
@@ -69,7 +62,8 @@ async function getRegistrations(req: AuthenticatedRequest) {
           startDate,
           endDate
         });
-      }
+      },
+      CacheTTL.registrations // 1 minute
     );
 
     // Log access for EVERY request (not just cache misses)

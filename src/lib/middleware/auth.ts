@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken, TokenPayload } from '@/lib/auth/jwt';
 import { AuditLog } from '@/lib/db/models/AuditLog';
+import { AdminSession } from '@/lib/db/models/AdminSession';
+import { trackSessionActivity } from '@/lib/auth/session-tracker';
 import { headers } from 'next/headers';
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -17,7 +19,7 @@ export function withAuth(
       const authHeader = req.headers.get('authorization');
       const token = authHeader?.startsWith('Bearer ')
         ? authHeader.substring(7)
-        : req.cookies.get('access_token')?.value;
+        : req.cookies.get('accessToken')?.value;
 
       if (!token) {
         return NextResponse.json(
@@ -28,6 +30,36 @@ export function withAuth(
 
       // Verify token
       const payload = verifyAccessToken(token);
+
+      if (!payload) {
+        return NextResponse.json(
+          { error: 'Invalid or expired token' },
+          { status: 401 }
+        );
+      }
+
+      // Validate session exists and is active
+      if (payload.sessionId) {
+        const session = await AdminSession.findOne({
+          id: payload.sessionId,
+          status: 'active'
+        });
+
+        if (!session) {
+          return NextResponse.json(
+            { error: 'Session expired or invalid' },
+            { status: 401 }
+          );
+        }
+
+        // Track session activity and handle auto-extension
+        await trackSessionActivity(
+          payload.sessionId,
+          payload.userId,
+          payload.email,
+          payload.role
+        );
+      }
 
       // Check permissions if required
       if (requiredPermissions && requiredPermissions.length > 0) {

@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import bcrypt from 'bcryptjs';
 import { pgTable, uuid, varchar, boolean, timestamp, text, integer, jsonb, date, pgEnum } from 'drizzle-orm/pg-core';
+import { eq } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -145,14 +146,35 @@ async function seedAdmin() {
       .limit(1);
 
     if (existingAdmins.length > 0) {
-      console.log('ℹ️  Admin users already exist, skipping seed');
+      console.log('ℹ️  Admin users already exist, updating password...');
+
+      // Update the super admin password
+      const superAdminEmail = process.env.ADMIN_EMAIL || 'superadmin@biggbuzz.com';
+      const superAdminPassword = process.env.ADMIN_PASSWORD || 'Admin2024!@#';
+      const passwordHash = await bcrypt.hash(superAdminPassword, 12);
+
+      await db
+        .update(adminUsers)
+        .set({
+          passwordHash,
+          isActive: true,
+          role: 'super_admin',
+          isSuperAdmin: true,
+          updatedAt: new Date()
+        })
+        .where(eq(adminUsers.email, superAdminEmail));
+
+      console.log('✅ Super admin password updated');
+      console.log(`   Email: ${superAdminEmail}`);
+      console.log(`   Password: ${superAdminPassword}`);
+
       await client.end();
       return;
     }
 
     // Create super admin user
-    const superAdminEmail = process.env.ADMIN_EMAIL || 'admin@biggbuzz.com';
-    const superAdminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456!';
+    const superAdminEmail = process.env.ADMIN_EMAIL || 'superadmin@biggbuzz.com';
+    const superAdminPassword = process.env.ADMIN_PASSWORD || 'Admin2024!@#';
 
     console.log('\n👤 Creating super admin user...');
 

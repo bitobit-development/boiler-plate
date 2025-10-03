@@ -213,3 +213,5 @@ See `.claude/agents/README.md` for complete agent directory and invocation guide
 
 ## Project Context
 This appears to be a fresh Next.js boilerplate with shadcn/ui integration, ready for cannabis industry registration application development based on user requirements.
+- the admin username and password for the admin dashboard is admin@biggbuzz.com and password admin123 use it when using the brightright mcp tool. 
+the agents can use the schadcn mcp tool as required.

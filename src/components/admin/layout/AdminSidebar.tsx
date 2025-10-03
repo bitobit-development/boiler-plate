@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Bell,
   Database,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useDashboardStats } from "@/lib/hooks/useAdminData";
 import { useSocket } from "@/components/admin/providers/SocketProvider";
+import { SessionStatusIndicator } from "@/components/admin/layout/SessionStatusIndicator";
 
 interface NavItem {
   title: string;
@@ -40,9 +42,15 @@ const baseNavigation: Omit<NavItem, 'badge'>[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Registrations",
+    title: "Subscribers",
     href: "/admin/registrations",
     icon: UserCheck,
+    badgeVariant: "destructive",
+  },
+  {
+    title: "Products",
+    href: "/admin/products",
+    icon: Package,
     badgeVariant: "destructive",
   },
   {
@@ -73,12 +81,16 @@ export function AdminSidebar() {
   const { stats } = useDashboardStats();
   const { socket } = useSocket();
   const [pendingCount, setPendingCount] = useState<number>(0);
+  const [lowStockCount, setLowStockCount] = useState<number>(0);
 
   // Update pending count from stats
   useEffect(() => {
     if (stats?.pendingReviews !== undefined) {
       setPendingCount(stats.pendingReviews);
     }
+    // For now, we'll set this to 0 until we fetch product stats
+    // This will be updated when we add the product stats fetching
+    setLowStockCount(0);
   }, [stats]);
 
   // Listen for real-time updates via Socket.io
@@ -100,10 +112,16 @@ export function AdminSidebar() {
 
   // Build navigation with dynamic badge
   const navigation: NavItem[] = baseNavigation.map(item => {
-    if (item.title === "Registrations") {
+    if (item.title === "Subscribers") {
       return {
         ...item,
         badge: pendingCount > 0 ? pendingCount : undefined,
+      };
+    }
+    if (item.title === "Products") {
+      return {
+        ...item,
+        badge: lowStockCount > 0 ? lowStockCount : undefined,
       };
     }
     return item as NavItem;
@@ -217,6 +235,13 @@ export function AdminSidebar() {
             })}
           </nav>
         </ScrollArea>
+
+        {/* Session Status for Full Sidebar */}
+        {!collapsed && (
+          <div className="px-4 pb-2">
+            <SessionStatusIndicator mode="full" />
+          </div>
+        )}
 
         {/* User Section */}
         <div className="border-t border-border p-4">

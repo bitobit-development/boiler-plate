@@ -13,10 +13,14 @@ if (!connectionString) {
   throw new Error("Database connection string not found");
 }
 
-// Disable prefetch as it's not supported for "Transaction" pool mode
+// Connection pool configuration optimized for serverless
 const client = postgres(connectionString, {
-  max: 1, // Serverless functions should use 1 connection
-  prepare: false,
+  max: 3, // Allow 3 concurrent connections for better performance
+  idle_timeout: 20, // Close idle connections after 20 seconds
+  connect_timeout: 10, // Connection timeout in seconds
+  prepare: false, // Disable prepared statements for pooled connections
+  fetch_types: false, // Disable automatic type fetching for better performance
+  max_lifetime: 60 * 30, // Close connections after 30 minutes
 });
 
 // Create drizzle instance with schema

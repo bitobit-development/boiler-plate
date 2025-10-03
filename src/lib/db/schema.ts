@@ -524,3 +524,8 @@ export type SystemStatus = InferSelectModel<typeof systemStatus>;
 export type NewSystemStatus = InferInsertModel<typeof systemStatus>;
 export type DataChangeHistory = InferSelectModel<typeof dataChangeHistory>;
 export type NewDataChangeHistory = InferInsertModel<typeof dataChangeHistory>;
+
+// ====================================
+// RE-EXPORT PRODUCT SCHEMAS
+// ====================================
+export * from "./schema/products";

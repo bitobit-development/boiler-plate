@@ -5,6 +5,7 @@ import { AdminSidebar } from "@/components/admin/layout/AdminSidebar";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 import { useAdminAuth } from "@/components/admin/providers/AdminAuthProvider";
 import { SocketProvider } from "@/components/admin/providers/SocketProvider";
+import { SessionTimeoutWarning } from "@/components/admin/session/SessionTimeoutWarning";
 
 export function AuthenticatedLayoutWrapper({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAdminAuth();
@@ -48,6 +49,9 @@ export function AuthenticatedLayoutWrapper({ children }: { children: React.React
           </main>
         </div>
       </div>
+
+      {/* Session Timeout Warning Modal */}
+      <SessionTimeoutWarning />
     </SocketProvider>
   );
 }

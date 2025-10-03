@@ -63,6 +63,7 @@ import { adminApi } from "@/lib/api/admin";
 import { toast } from "@/hooks/use-toast";
 import { Registration } from "@/lib/types/admin";
 import { RegistrationDetailsSheet } from "@/components/admin/registrations/RegistrationDetailsSheet";
+import { PhoneNumberDisplay } from "@/components/admin/shared/PhoneNumberDisplay";
 
 const statusConfig = {
   pending: {
@@ -226,9 +227,9 @@ export default function RegistrationsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Registrations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Subscribers</h1>
           <p className="text-muted-foreground mt-2">
-            Manage and review cannabis license registrations
+            Manage and review cannabis license subscribers
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -270,7 +271,7 @@ export default function RegistrationsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, email, or company..."
+                placeholder="Search by name, email, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -331,8 +332,7 @@ export default function RegistrationsPage() {
                       />
                     )}
                   </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Company</TableHead>
+                  <TableHead>Full Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Contact</TableHead>
@@ -347,7 +347,6 @@ export default function RegistrationsPage() {
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-28" /></TableCell>
@@ -357,10 +356,10 @@ export default function RegistrationsPage() {
                   ))
                 ) : error ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <div className="flex flex-col items-center">
                         <AlertCircle className="h-8 w-8 text-destructive mb-2" />
-                        <p className="text-sm text-muted-foreground">Failed to load registrations</p>
+                        <p className="text-sm text-muted-foreground">Failed to load subscribers</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -388,16 +387,8 @@ export default function RegistrationsPage() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{registration.name}</p>
+                            <p className="font-medium">{registration.name} {registration.surname}</p>
                             <p className="text-xs text-muted-foreground">{registration.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm">{registration.companyName}</p>
-                            {registration.companyWebsite && (
-                              <p className="text-xs text-muted-foreground">{registration.companyWebsite}</p>
-                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-sm capitalize">
@@ -409,10 +400,8 @@ export default function RegistrationsPage() {
                             {status.label}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm">
-                          <div>
-                            <p>{registration.phone}</p>
-                          </div>
+                        <TableCell>
+                          <PhoneNumberDisplay phone={registration.phone} />
                         </TableCell>
                         <TableCell className="text-sm">
                           {format(new Date(registration.submittedAt), "MMM d, yyyy")}
@@ -460,8 +449,8 @@ export default function RegistrationsPage() {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      <p className="text-sm text-muted-foreground">No registrations found</p>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">No subscribers found</p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -475,7 +464,7 @@ export default function RegistrationsPage() {
               <p className="text-sm text-muted-foreground">
                 Showing {((data.page - 1) * 10) + 1} to{" "}
                 {Math.min(data.page * 10, data.total)} of{" "}
-                {data.total} registrations
+                {data.total} subscribers
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -541,11 +530,11 @@ export default function RegistrationsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === "approved" ? "Approve" : "Reject"} Registration
+              {reviewAction === "approved" ? "Approve" : "Reject"} Subscriber
             </DialogTitle>
             <DialogDescription>
               {selectedRegistration && (
-                <>Review registration for {selectedRegistration.name} ({selectedRegistration.companyName})</>
+                <>Review subscriber {selectedRegistration.name} {selectedRegistration.surname}</>
               )}
             </DialogDescription>
           </DialogHeader>

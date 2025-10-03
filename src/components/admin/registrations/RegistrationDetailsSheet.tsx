@@ -43,6 +43,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import type { Registration } from "@/lib/types/admin"
+import { PhoneNumberDisplay } from "@/components/admin/shared/PhoneNumberDisplay"
 
 interface RegistrationDetailsSheetProps {
   registration: Registration | null
@@ -222,19 +223,21 @@ export function RegistrationDetailsSheet({
                       icon={Mail}
                       href={`mailto:${registration.email}`}
                     />
-                    <InfoRow
-                      label="Phone"
-                      value={registration.phone}
-                      icon={Phone}
-                      href={`tel:${registration.phone}`}
-                    />
+                    <div className="flex flex-col sm:flex-row sm:justify-between py-2 gap-1 sm:gap-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1.5">
+                        <Phone className="h-3.5 w-3.5" />
+                        Phone:
+                      </span>
+                      <PhoneNumberDisplay phone={registration.phone} className="justify-end" />
+                    </div>
                     {registration.mobile && (
-                      <InfoRow
-                        label="Mobile"
-                        value={registration.mobile}
-                        icon={Smartphone}
-                        href={`tel:${registration.mobile}`}
-                      />
+                      <div className="flex flex-col sm:flex-row sm:justify-between py-2 gap-1 sm:gap-4">
+                        <span className="text-sm text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1.5">
+                          <Smartphone className="h-3.5 w-3.5" />
+                          Mobile:
+                        </span>
+                        <PhoneNumberDisplay phone={registration.mobile} className="justify-end" />
+                      </div>
                     )}
                     <Separator className="my-2" />
                     <InfoRow

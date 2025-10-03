@@ -252,6 +252,9 @@ export function useRegistrations(params?: {
   };
 }
 
+// Request cache for deduplication
+const activityRequestCache = new Map<number, Promise<any>>();
+
 // Recent Activity Hook
 export function useRecentActivity(limit = 10) {
   const [activities, setActivities] = useState<DashboardActivity[]>([]);
@@ -263,7 +266,22 @@ export function useRecentActivity(limit = 10) {
     try {
       setLoading(true);
       setError(null);
-      const response = await adminApi.getRecentActivity(limit);
+
+      // Check if there's an ongoing request for this limit
+      let responsePromise = activityRequestCache.get(limit);
+
+      if (!responsePromise) {
+        // Create new request and cache it
+        responsePromise = adminApi.getRecentActivity(limit);
+        activityRequestCache.set(limit, responsePromise);
+
+        // Clean up cache after request completes
+        responsePromise.finally(() => {
+          activityRequestCache.delete(limit);
+        });
+      }
+
+      const response = await responsePromise;
 
       // Handle both old format (array) and new format (object with activities)
       let logs = Array.isArray(response) ? response : response.activities || [];

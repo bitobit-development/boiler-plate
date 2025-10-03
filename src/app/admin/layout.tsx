@@ -4,6 +4,7 @@ import "../globals.css";
 import "./admin.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AdminAuthProvider } from "@/components/admin/providers/AdminAuthProvider";
+import { AdminSessionProvider } from "@/components/admin/providers/AdminSessionProvider";
 import { AuthenticatedLayoutWrapper } from "@/components/admin/layout/AuthenticatedLayoutWrapper";
 
 const inter = Inter({
@@ -25,9 +26,11 @@ export default function AdminLayout({
   return (
     <div className={`${inter.variable} font-sans admin-layout admin-theme bg-background text-foreground min-h-screen`}>
       <AdminAuthProvider>
-        <AuthenticatedLayoutWrapper>{children}</AuthenticatedLayoutWrapper>
-        {/* Toast Notifications always available */}
-        <Toaster />
+        <AdminSessionProvider>
+          <AuthenticatedLayoutWrapper>{children}</AuthenticatedLayoutWrapper>
+          {/* Toast Notifications always available */}
+          <Toaster />
+        </AdminSessionProvider>
       </AdminAuthProvider>
     </div>
   );
