@@ -200,3 +200,100 @@ setInterval(() => {
     }
   }
 }, RATE_LIMIT_WINDOW);
+
+/**
+ * Middleware to require shop user role
+ * Shop users can only access POS routes
+ */
+export async function requireShopUser(
+  request: NextRequest,
+  handler: (req: NextRequest & { user: any }) => Promise<NextResponse>
+): Promise<NextResponse> {
+  const { authenticated, user, error } = await validateAdminAuth(request);
+
+  if (!authenticated) {
+    return NextResponse.json(
+      { error: error || 'Authentication required' },
+      { status: 401 }
+    );
+  }
+
+  // Check if user has shop_user role
+  if (user.role !== 'shop_user') {
+    // Log unauthorized access attempt
+    try {
+      await AuditLog.create({
+        adminUserId: user.id,
+        action: 'unauthorized_access',
+        resource: 'pos',
+        resourceId: request.nextUrl.pathname,
+        details: {
+          attemptedRole: 'shop_user',
+          actualRole: user.role,
+          path: request.nextUrl.pathname
+        },
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        status: 'failed'
+      });
+    } catch (err) {
+      console.error('Failed to log unauthorized access:', err);
+    }
+
+    return NextResponse.json(
+      { error: 'Access denied. Shop user role required.' },
+      { status: 403 }
+    );
+  }
+
+  // Add user to request
+  const authRequest = request as NextRequest & { user: any };
+  authRequest.user = user;
+
+  // Log successful POS access
+  try {
+    await AuditLog.create({
+      adminUserId: user.id,
+      action: 'pos_access',
+      resource: 'pos',
+      resourceId: request.nextUrl.pathname,
+      details: {
+        method: request.method,
+        path: request.nextUrl.pathname,
+        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+      },
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      status: 'success'
+    });
+  } catch (err) {
+    console.error('Failed to log POS access:', err);
+  }
+
+  return handler(authRequest);
+}
+
+/**
+ * Check if user has permission for specific route based on role
+ * Enforces role-based route restrictions
+ */
+export function checkRoutePermission(role: string, path: string): boolean {
+  // Shop users can only access POS routes
+  if (role === 'shop_user') {
+    return path.startsWith('/pos') || path.startsWith('/api/pos');
+  }
+
+  // Other roles (super_admin, admin, viewer) can access admin routes
+  // but not POS-exclusive routes
+  const posOnlyRoutes = ['/pos/kiosk', '/api/pos/kiosk'];
+  if (posOnlyRoutes.some(route => path.startsWith(route))) {
+    return false; // Only shop_user can access kiosk routes
+  }
+
+  // Standard admin roles can access admin routes
+  if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
+    return ['super_admin', 'admin', 'viewer'].includes(role);
+  }
+
+  return true; // Allow access to other routes
+}

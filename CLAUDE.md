@@ -3,6 +3,7 @@
 ## Project Context
 - **Type**: Cannabis industry e-commerce platform (Next.js 15.5.4 + Drizzle ORM)
 - **Admin Access**: admin@biggbuzz.com / admin123
+- **Shop User Access**: foodtruck@biggbuzz.com / Tsitsi2025!! (POS Kiosk only)
 - **Database**: PostgreSQL (connection in .env.local)
 - **Port**: Always use 3000 (run `npx kill-port 3000` if blocked)
 

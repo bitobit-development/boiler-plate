@@ -145,6 +145,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Revoke all existing active sessions for this user before creating a new one
+    // This prevents duplicate token hash errors and ensures clean login
+    await AdminSession.revokeAllUserSessions(user.id, 'New login session created');
+
     // Create session first (with placeholder tokens) to get session ID
     const session = await AdminSession.create({
       adminUserId: user.id,

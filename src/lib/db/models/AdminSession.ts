@@ -234,6 +234,41 @@ export const AdminSession = {
   },
 
   /**
+   * Revoke all active sessions for a user
+   * This is useful when a user logs in from a new location/device
+   * and we want to invalidate all previous sessions
+   */
+  async revokeAllUserSessions(adminUserId: string, reason?: string) {
+    try {
+      const now = new Date();
+
+      const result = await db
+        .update(adminSessions)
+        .set({
+          status: 'revoked',
+          revokedAt: now,
+          revokedBy: adminUserId,
+          revokedReason: reason || 'All sessions revoked due to new login'
+        })
+        .where(
+          and(
+            eq(adminSessions.adminUserId, adminUserId),
+            eq(adminSessions.status, 'active')
+          )
+        )
+        .returning();
+
+      return {
+        revokedCount: result.length,
+        sessions: result
+      };
+    } catch (error) {
+      console.error('Error revoking all user sessions:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Get active sessions for a user
    */
   async getActiveUserSessions(adminUserId: string) {

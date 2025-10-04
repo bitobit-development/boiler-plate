@@ -18,6 +18,7 @@ import {
   Bell,
   Database,
   Package,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -52,6 +53,12 @@ const baseNavigation: Omit<NavItem, 'badge'>[] = [
     href: "/admin/products",
     icon: Package,
     badgeVariant: "destructive",
+  },
+  {
+    title: "Orders",
+    href: "/admin/orders",
+    icon: ShoppingBag,
+    badgeVariant: "default",
   },
   {
     title: "Admin Users",

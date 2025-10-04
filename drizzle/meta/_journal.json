@@ -43,6 +43,13 @@
       "when": 1759511802145,
       "tag": "0005_fantastic_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759536370231,
+      "tag": "0006_yellow_ricochet",
+      "breakpoints": true
     }
   ]
 }

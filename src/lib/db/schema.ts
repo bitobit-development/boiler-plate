@@ -22,7 +22,8 @@ import { InferSelectModel, InferInsertModel, relations } from "drizzle-orm";
 export const adminRoleEnum = pgEnum("admin_role", [
   "super_admin",
   "admin",
-  "viewer"
+  "viewer",
+  "shop_user"
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", [
@@ -529,3 +530,8 @@ export type NewDataChangeHistory = InferInsertModel<typeof dataChangeHistory>;
 // RE-EXPORT PRODUCT SCHEMAS
 // ====================================
 export * from "./schema/products";
+
+// ====================================
+// RE-EXPORT ORDER SCHEMAS
+// ====================================
+export * from "./schema/orders";

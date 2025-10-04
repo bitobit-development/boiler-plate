@@ -1,0 +1,210 @@
+/* POS System Theme - Based on Admin Theme */
+
+:root {
+  /* Primary colors from admin theme */
+  --pos-primary: oklch(0.55 0.22 240);
+  --pos-primary-hover: oklch(0.5 0.22 240);
+  --pos-accent: oklch(0.5 0.15 190);
+  --pos-success: oklch(0.62 0.18 145);
+
+  /* Background colors */
+  --pos-bg-main: oklch(0.135 0.02 240);
+  --pos-bg-card: oklch(0.165 0.02 240);
+  --pos-bg-hover: oklch(0.185 0.02 240);
+
+  /* Text colors */
+  --pos-text-primary: oklch(0.95 0.01 240);
+  --pos-text-secondary: oklch(0.7 0.01 240);
+  --pos-text-muted: oklch(0.5 0.01 240);
+
+  /* Border colors */
+  --pos-border: oklch(0.25 0.02 240);
+  --pos-border-hover: oklch(0.35 0.02 240);
+
+  /* Touch target minimum size */
+  --pos-touch-target: 48px;
+
+  /* Font sizes for better visibility */
+  --pos-font-base: 16px;
+  --pos-font-large: 18px;
+  --pos-font-xl: 20px;
+}
+
+/* Base POS styles */
+.pos-layout {
+  background: var(--pos-bg-main);
+  color: var(--pos-text-primary);
+  min-height: 100vh;
+  font-size: var(--pos-font-base);
+}
+
+/* Touch-optimized buttons */
+.pos-button {
+  min-height: var(--pos-touch-target);
+  min-width: var(--pos-touch-target);
+  font-size: var(--pos-font-base);
+  font-weight: 500;
+  touch-action: manipulation;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.pos-button:active {
+  transform: scale(0.98);
+}
+
+/* Product cards */
+.pos-product-card {
+  background: var(--pos-bg-card);
+  border: 1px solid var(--pos-border);
+  transition: all 0.2s ease;
+}
+
+.pos-product-card:hover {
+  background: var(--pos-bg-hover);
+  border-color: var(--pos-border-hover);
+  transform: translateY(-2px);
+}
+
+/* Cart panel styles */
+.pos-cart-panel {
+  background: var(--pos-bg-card);
+  border-left: 1px solid var(--pos-border);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Input fields */
+.pos-input {
+  min-height: var(--pos-touch-target);
+  font-size: var(--pos-font-base);
+  background: var(--pos-bg-main);
+  border-color: var(--pos-border);
+  color: var(--pos-text-primary);
+}
+
+.pos-input:focus {
+  border-color: var(--pos-primary);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px oklch(0.55 0.22 240 / 0.1);
+}
+
+/* Category filter tabs */
+.pos-category-tab {
+  min-height: var(--pos-touch-target);
+  padding: 0 1.5rem;
+  font-size: var(--pos-font-base);
+  font-weight: 500;
+  background: transparent;
+  color: var(--pos-text-secondary);
+  border: 1px solid var(--pos-border);
+  transition: all 0.2s ease;
+}
+
+.pos-category-tab:hover {
+  background: var(--pos-bg-hover);
+  color: var(--pos-text-primary);
+  border-color: var(--pos-border-hover);
+}
+
+.pos-category-tab[data-state="active"] {
+  background: var(--pos-primary);
+  color: white;
+  border-color: var(--pos-primary);
+}
+
+/* OTP Input fields */
+.pos-otp-input {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  background: var(--pos-bg-main);
+  border: 2px solid var(--pos-border);
+  color: var(--pos-text-primary);
+}
+
+.pos-otp-input:focus {
+  border-color: var(--pos-primary);
+  box-shadow: 0 0 0 3px oklch(0.55 0.22 240 / 0.2);
+}
+
+/* Scrollbar styling */
+.pos-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.pos-scrollbar::-webkit-scrollbar-track {
+  background: var(--pos-bg-main);
+}
+
+.pos-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--pos-border);
+  border-radius: 4px;
+}
+
+.pos-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--pos-border-hover);
+}
+
+/* Success states */
+.pos-success {
+  background: oklch(0.62 0.18 145 / 0.1);
+  border-color: var(--pos-success);
+  color: var(--pos-success);
+}
+
+/* Warning states */
+.pos-warning {
+  background: oklch(0.65 0.2 85 / 0.1);
+  border-color: oklch(0.65 0.2 85);
+  color: oklch(0.75 0.2 85);
+}
+
+/* Error states */
+.pos-error {
+  background: oklch(0.55 0.25 25 / 0.1);
+  border-color: oklch(0.55 0.25 25);
+  color: oklch(0.65 0.25 25);
+}
+
+/* Animations */
+@keyframes pos-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pos-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pos-animate-slide-in {
+  animation: pos-slide-in 0.3s ease-out;
+}
+
+.pos-animate-fade-in {
+  animation: pos-fade-in 0.2s ease-out;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --pos-border: oklch(0.4 0.02 240);
+    --pos-text-secondary: oklch(0.85 0.01 240);
+  }
+}
