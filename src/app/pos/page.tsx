@@ -429,7 +429,7 @@ function POSContent() {
             </div>
 
             {/* Product Grid */}
-            <ScrollArea className="flex-1 pos-scrollbar">
+            <ScrollArea className="flex-1 overflow-hidden pos-scrollbar">
               <ProductGrid
                 products={filteredProducts}
                 loading={loading}
