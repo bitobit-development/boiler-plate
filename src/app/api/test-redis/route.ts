@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
-import { isRedisAvailable } from '@/lib/cache';
+import { cacheExists, setCached, getCached } from '@/lib/cache';
 
 export async function GET() {
   try {
-    const available = await isRedisAvailable();
+    // Test Redis by setting and getting a test value
+    const testKey = 'test:redis:connection';
+    const testValue = { timestamp: Date.now(), test: true };
 
-    if (available) {
+    await setCached(testKey, testValue, 10); // 10 second TTL
+    const retrieved = await getCached(testKey);
+    const exists = await cacheExists(testKey);
+
+    if (retrieved && exists) {
       return NextResponse.json({
         success: true,
         message: '✅ Redis connected successfully!',

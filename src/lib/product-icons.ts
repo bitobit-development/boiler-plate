@@ -24,7 +24,6 @@ import {
   Scroll,
   Package,
   Wrench,
-  Tool,
   Box,
   ShoppingBag,
   Sun,
@@ -40,7 +39,7 @@ export const iconVariations: Record<string, LucideIcon[]> = {
   vape: [Zap, Wind, Cloud, Gauge, Battery],
   concentrate: [Droplet, Gem, Diamond, Sparkles, Droplets],
   pre_roll: [Cigarette, Scroll, Wind],
-  accessory: [Package, Wrench, Tool, Box, ShoppingBag],
+  accessory: [Package, Wrench, Box, ShoppingBag],
 };
 
 // Strain type icons for secondary indicators

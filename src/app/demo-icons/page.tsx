@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { ProductCard } from "@/components/shop/ProductCard";
 import type { ProductWithCategory } from "@/types/products";
