@@ -145,25 +145,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Revoke all existing active sessions for this user before creating a new one
-    // This prevents duplicate token hash errors and ensures clean login
-    await AdminSession.revokeAllUserSessions(user.id, 'New login session created');
+    // Create session with temporary tokens to get session ID
+    // Sessions are limited to 5 per user and expire after 5 hours
+    const tempAccessToken = AdminSession.generateToken();
+    const tempRefreshToken = AdminSession.generateToken();
 
-    // Create session first (with placeholder tokens) to get session ID
     const session = await AdminSession.create({
       adminUserId: user.id,
-      accessToken: 'placeholder',
-      refreshToken: 'placeholder',
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 60 minutes
+      accessToken: tempAccessToken,
+      refreshToken: tempRefreshToken,
+      expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours
       ipAddress: ip,
       userAgent: request.headers.get('user-agent') || 'unknown',
       status: 'active'
     });
 
-    // Generate tokens with session ID
+    // Generate JWT tokens with session ID
     const { accessToken, refreshToken, accessExpiresAt, refreshExpiresAt } = generateTokens(user, session.id);
 
-    // Update session with real tokens
+    // Update session with JWT tokens
     await AdminSession.updateById(session.id, {
       accessToken,
       refreshToken,
@@ -216,12 +216,12 @@ export async function POST(request: NextRequest) {
       sessionId: session.id
     });
 
-    // Set HTTP-only cookies for tokens with extended session
+    // Set HTTP-only cookies for tokens with 5-hour session
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60, // 60 minutes (extended from 15 minutes)
+      maxAge: 5 * 60 * 60, // 5 hours
       path: '/'
     });
 
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 5 * 60 * 60, // 5 hours
       path: '/'
     });
 

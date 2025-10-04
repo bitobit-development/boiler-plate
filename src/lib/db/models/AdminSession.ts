@@ -112,13 +112,18 @@ export const AdminSession = {
    */
   async create(data: Partial<NewAdminSession>) {
     try {
-      // Generate tokens if not provided
+      // Generate unique tokens if not provided
       const accessToken = data.accessToken || this.generateToken();
       const refreshToken = data.refreshToken || this.generateToken();
       const tokenHash = this.hashToken(accessToken);
 
-      // Set expiry time (60 minutes for session timeout)
-      const expiresAt = data.expiresAt || new Date(Date.now() + 60 * 60 * 1000);
+      // Set expiry time (5 hours for session timeout)
+      const expiresAt = data.expiresAt || new Date(Date.now() + 5 * 60 * 60 * 1000);
+
+      // Clean up old sessions if user has 5 or more active sessions
+      if (data.adminUserId) {
+        await this.cleanupOldSessions(data.adminUserId, 5);
+      }
 
       const result = await db
         .insert(adminSessions)
@@ -137,6 +142,48 @@ export const AdminSession = {
     } catch (error) {
       console.error('Error creating session:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Clean up old sessions for a user, keeping only the most recent ones
+   */
+  async cleanupOldSessions(adminUserId: string, maxSessions: number = 5) {
+    try {
+      const now = new Date();
+
+      // Get all active sessions for the user, ordered by most recent first
+      const sessions = await db
+        .select()
+        .from(adminSessions)
+        .where(
+          and(
+            eq(adminSessions.adminUserId, adminUserId),
+            eq(adminSessions.status, 'active'),
+            gte(adminSessions.expiresAt, now)
+          )
+        )
+        .orderBy(desc(adminSessions.lastActivityAt));
+
+      // If user has maxSessions or more, delete the oldest ones
+      if (sessions.length >= maxSessions) {
+        const sessionsToDelete = sessions.slice(maxSessions - 1); // Keep maxSessions - 1, delete the rest
+        const sessionIdsToDelete = sessionsToDelete.map(s => s.id);
+
+        if (sessionIdsToDelete.length > 0) {
+          await db
+            .delete(adminSessions)
+            .where(
+              and(
+                eq(adminSessions.adminUserId, adminUserId),
+                sql`${adminSessions.id} IN (${sql.join(sessionIdsToDelete.map(id => sql`${id}`), sql`, `)})`
+              )
+            );
+        }
+      }
+    } catch (error) {
+      console.error('Error cleaning up old sessions:', error);
+      // Don't throw - we don't want to prevent login if cleanup fails
     }
   },
 
@@ -406,7 +453,7 @@ export const AdminSession = {
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
           tokenHash: newTokenHash,
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 60 minutes extended session
+          expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours extended session
           lastActivityAt: new Date()
         })
         .where(eq(adminSessions.id, session.id))

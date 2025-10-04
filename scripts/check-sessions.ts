@@ -1,38 +1,34 @@
-import postgres from 'postgres';
-
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_H8yPuT1KCGnt@ep-solitary-night-adt25que-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require";
+import 'dotenv/config';
+import { db } from '../src/lib/db';
+import { adminSessions } from '../src/lib/db/schema';
 
 async function checkSessions() {
-  const sql = postgres(DATABASE_URL, { max: 1 });
-
   try {
     console.log('🔍 Checking admin sessions...\n');
 
-    const sessions = await sql`
-      SELECT id, token_hash, status, created_at
-      FROM admin_sessions
-      ORDER BY created_at DESC
-      LIMIT 10
-    `;
+    // Get all sessions
+    const allSessions = await db
+      .select()
+      .from(adminSessions);
 
-    console.log(`Found ${sessions.length} sessions:`);
-    sessions.forEach((s, i) => {
-      console.log(`${i + 1}. ID: ${s.id}, Hash: ${s.token_hash}, Status: ${s.status}, Created: ${s.created_at}`);
-    });
+    console.log(`📊 Total sessions in database: ${allSessions.length}`);
 
-    // Check for the specific duplicate
-    const duplicate = await sql`
-      SELECT * FROM admin_sessions
-      WHERE token_hash = '4097889236a2af26c293033feb964c4cf118c0224e0d063fec0a89e9d0569ef2'
-    `;
+    if (allSessions.length > 0) {
+      console.log('\n📋 Sessions found:');
+      allSessions.forEach((session, index) => {
+        console.log(`\n${index + 1}. Session ID: ${session.id}`);
+        console.log(`   Admin User ID: ${session.adminUserId}`);
+        console.log(`   Status: ${session.status}`);
+        console.log(`   Created: ${session.createdAt}`);
+        console.log(`   Expires: ${session.expiresAt}`);
+      });
+    } else {
+      console.log('\n✅ No sessions found - database is clean!');
+    }
 
-    console.log(`\n🔍 Sessions with problematic hash: ${duplicate.length}`);
-
-    await sql.end();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error:', error);
-    await sql.end();
+    console.error('❌ Error checking sessions:', error);
     process.exit(1);
   }
 }
