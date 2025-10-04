@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import ParticleBackground from "@/components/subscription/ParticleBackground";
@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { subscribeAction } from "@/app/actions/subscribe";
 import { subscriptionSchema, type SubscriptionFormData } from "@/lib/validations/subscription";
 import { toast } from "sonner";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 export default function Subscribe() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function Subscribe() {
     formState: { errors },
     setError,
     clearErrors,
+    control,
   } = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
     mode: "onBlur",
@@ -205,31 +207,28 @@ export default function Subscribe() {
               <label htmlFor="mobile" className="block text-white font-medium mb-3">
                 Mobile Number
               </label>
-              <div className="flex bg-gray-800 border border-gray-700 rounded-lg focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/50 transition-all duration-200">
-                <div className="flex items-center px-4 border-r border-gray-700">
-                  <span className="text-gray-400 whitespace-nowrap">+27</span>
-                </div>
-                <input
-                  id="mobile"
-                  type="tel"
-                  placeholder="082 123 4567"
-                  {...register("mobile")}
-                  onChange={(e) => {
-                    register("mobile").onChange(e);
-                    if (errors.mobile) {
-                      clearErrors("mobile");
-                    }
-                  }}
-                  className="flex-1 px-4 py-3 bg-transparent text-white focus:outline-none"
-                  aria-invalid={errors.mobile ? "true" : "false"}
-                  aria-describedby={errors.mobile ? "mobile-error" : undefined}
-                />
-              </div>
+              <Controller
+                name="mobile"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    {...field}
+                    id="mobile"
+                    defaultCountry="ZA"
+                    className="[&_button]:bg-gray-800 [&_button]:text-white [&_button]:border-gray-700 [&_input]:bg-gray-800 [&_input]:text-white [&_input]:border-gray-700"
+                    aria-invalid={errors.mobile ? "true" : "false"}
+                    aria-describedby={errors.mobile ? "mobile-error" : undefined}
+                  />
+                )}
+              />
               {errors.mobile && (
                 <p id="mobile-error" className="mt-3 text-sm text-red-500" role="alert">
                   {errors.mobile.message}
                 </p>
               )}
+              <p className="mt-2 text-xs text-gray-400">
+                Select your country and enter your mobile number
+              </p>
             </div>
 
             {/* Age Verification Checkbox */}

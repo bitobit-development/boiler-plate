@@ -5,20 +5,25 @@ export const subscriptionSchema = z.object({
   surname: z.string().min(2, "Please enter your last name"),
   email: z.string().email("Please enter a valid email address"),
   mobile: z.string()
+    .min(1, "Please enter your mobile number")
     .transform((val) => {
-      // If mobile starts with 0, convert to +27 format
-      if (val.startsWith('0') && val.length === 10) {
-        return `+27${val.substring(1)}`;
+      // Remove all non-digit characters except +
+      const cleaned = val.replace(/[^\d+]/g, '');
+
+      // If mobile starts with 0, convert to +27 format (SA backward compatibility)
+      if (cleaned.startsWith('0') && cleaned.length === 10) {
+        return `+27${cleaned.substring(1)}`;
       }
-      // If already has +27, keep it
-      if (val.startsWith('+27')) {
-        return val;
+
+      // If doesn't start with +, add it
+      if (!cleaned.startsWith('+')) {
+        return `+${cleaned}`;
       }
-      // Otherwise return as-is for validation error
-      return val;
+
+      return cleaned;
     })
     .pipe(
-      z.string().regex(/^\+27\d{9}$/, "Please enter a valid South African mobile number")
+      z.string().regex(/^\+\d{7,15}$/, "Please enter a valid international phone number")
     ),
   ageVerified: z.boolean().refine((val) => val === true, {
     message: "You must be 18 or older to subscribe",
