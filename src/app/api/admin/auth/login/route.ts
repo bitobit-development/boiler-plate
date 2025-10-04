@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session with temporary tokens to get session ID
-    // Sessions are limited to 5 per user and expire after 5 hours
+    // Sessions are limited to 5 per user and expire after 6 hours
     const tempAccessToken = AdminSession.generateToken();
     const tempRefreshToken = AdminSession.generateToken();
 
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
       adminUserId: user.id,
       accessToken: tempAccessToken,
       refreshToken: tempRefreshToken,
-      expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours
+      expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours
       ipAddress: ip,
       userAgent: request.headers.get('user-agent') || 'unknown',
       status: 'active'
@@ -216,12 +216,12 @@ export async function POST(request: NextRequest) {
       sessionId: session.id
     });
 
-    // Set HTTP-only cookies for tokens with 5-hour session
+    // Set HTTP-only cookies for tokens with 6-hour session
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 5 * 60 * 60, // 5 hours
+      maxAge: 6 * 60 * 60, // 6 hours
       path: '/'
     });
 
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 5 * 60 * 60, // 5 hours
+      maxAge: 6 * 60 * 60, // 6 hours
       path: '/'
     });
 

@@ -117,8 +117,8 @@ export const AdminSession = {
       const refreshToken = data.refreshToken || this.generateToken();
       const tokenHash = this.hashToken(accessToken);
 
-      // Set expiry time (5 hours for session timeout)
-      const expiresAt = data.expiresAt || new Date(Date.now() + 5 * 60 * 60 * 1000);
+      // Set expiry time (6 hours for session timeout)
+      const expiresAt = data.expiresAt || new Date(Date.now() + 6 * 60 * 60 * 1000);
 
       // Clean up old sessions if user has 5 or more active sessions
       if (data.adminUserId) {
@@ -453,7 +453,7 @@ export const AdminSession = {
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
           tokenHash: newTokenHash,
-          expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours extended session
+          expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours extended session
           lastActivityAt: new Date()
         })
         .where(eq(adminSessions.id, session.id))
