@@ -205,26 +205,24 @@ export default function Subscribe() {
               <label htmlFor="mobile" className="block text-white font-medium mb-3">
                 Mobile Number
               </label>
-              <div className="flex bg-gray-800 border border-gray-700 rounded-lg focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/50 transition-all duration-200">
-                <div className="flex items-center px-4 border-r border-gray-700">
-                  <span className="text-gray-400 whitespace-nowrap">+27</span>
-                </div>
-                <input
-                  id="mobile"
-                  type="tel"
-                  placeholder="082 123 4567"
-                  {...register("mobile")}
-                  onChange={(e) => {
-                    register("mobile").onChange(e);
-                    if (errors.mobile) {
-                      clearErrors("mobile");
-                    }
-                  }}
-                  className="flex-1 px-4 py-3 bg-transparent text-white focus:outline-none"
-                  aria-invalid={errors.mobile ? "true" : "false"}
-                  aria-describedby={errors.mobile ? "mobile-error" : undefined}
-                />
-              </div>
+              <input
+                id="mobile"
+                type="tel"
+                placeholder="+27821234567 or +12025551234"
+                {...register("mobile")}
+                onChange={(e) => {
+                  register("mobile").onChange(e);
+                  if (errors.mobile) {
+                    clearErrors("mobile");
+                  }
+                }}
+                className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/50 transition-all duration-200"
+                aria-invalid={errors.mobile ? "true" : "false"}
+                aria-describedby={errors.mobile ? "mobile-error mobile-hint" : "mobile-hint"}
+              />
+              <p id="mobile-hint" className="mt-2 text-xs text-gray-400">
+                Include country code (e.g., +27 for South Africa, +1 for USA)
+              </p>
               {errors.mobile && (
                 <p id="mobile-error" className="mt-3 text-sm text-red-500" role="alert">
                   {errors.mobile.message}

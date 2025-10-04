@@ -428,7 +428,7 @@ describe('Subscribe Action Integration', () => {
     test('should handle invalid mobile format', async () => {
       const invalidData = {
         ...validFormData,
-        mobile: '0821234567' // Missing country code
+        mobile: '123' // Too short to be valid
       };
 
       const result = await subscribeAction(invalidData);
