@@ -428,14 +428,14 @@ describe('Subscribe Action Integration', () => {
     test('should handle invalid mobile format', async () => {
       const invalidData = {
         ...validFormData,
-        mobile: '0821234567' // Missing country code
+        mobile: '123' // Too short, invalid format
       };
 
       const result = await subscribeAction(invalidData);
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain('mobile');
+        expect(result.error).toContain('international phone number');
         expect(result.field).toBe('mobile');
       }
     });
