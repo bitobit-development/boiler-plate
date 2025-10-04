@@ -6,19 +6,24 @@ export const subscriptionSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   mobile: z.string()
     .transform((val) => {
-      // If mobile starts with 0, convert to +27 format
-      if (val.startsWith('0') && val.length === 10) {
-        return `+27${val.substring(1)}`;
+      // Clean the number (remove spaces, dashes, parentheses)
+      const cleaned = val.replace(/[\s\-()]/g, "");
+
+      // If mobile starts with 0, convert to +27 format (SA local number)
+      if (cleaned.startsWith('0') && cleaned.length === 10) {
+        return `+27${cleaned.substring(1)}`;
       }
-      // If already has +27, keep it
-      if (val.startsWith('+27')) {
-        return val;
+
+      // If it doesn't start with +, add it (user typed country code without +)
+      if (/^\d/.test(cleaned) && !cleaned.startsWith('+')) {
+        return `+${cleaned}`;
       }
-      // Otherwise return as-is for validation error
-      return val;
+
+      // Otherwise return as-is
+      return cleaned;
     })
     .pipe(
-      z.string().regex(/^\+27\d{9}$/, "Please enter a valid South African mobile number")
+      z.string().regex(/^\+\d{7,15}$/, "Please enter a valid international mobile number (e.g., +27821234567)")
     ),
   ageVerified: z.boolean().refine((val) => val === true, {
     message: "You must be 18 or older to subscribe",
