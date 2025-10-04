@@ -143,7 +143,7 @@ export const otpOverrideLogs = pgTable("otp_override_logs", {
 
   // References
   subscriberId: uuid("subscriber_id").notNull().references(() => subscribers.id, { onDelete: "cascade" }),
-  shopUserId: uuid("shop_user_id").notNull().references(() => adminUsers.id, { onDelete: "restrict" }),
+  shopUserId: uuid("shop_user_id").references(() => adminUsers.id, { onDelete: "restrict" }), // Nullable - teller name in explanation if null
   orderId: uuid("order_id").references(() => orders.id, { onDelete: "cascade" }),
 
   // Override Details

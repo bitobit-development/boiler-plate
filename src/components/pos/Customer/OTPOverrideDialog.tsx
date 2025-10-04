@@ -96,13 +96,13 @@ export function OTPOverrideDialog({
   }, []);
 
   const handleSubmit = async () => {
-    if (!reason || !explanation.trim() || !customer || !user) {
-      setError('Please select a reason and provide an explanation');
+    if (!reason || !explanation.trim() || !customer) {
+      setError('Please select a reason and provide an explanation including your name');
       return;
     }
 
-    if (explanation.trim().length < 10) {
-      setError('Explanation must be at least 10 characters');
+    if (explanation.trim().length < 20) {
+      setError('Explanation must include your full name and be at least 20 characters');
       return;
     }
 
@@ -110,7 +110,8 @@ export function OTPOverrideDialog({
     setError('');
 
     try {
-      const shopUserId = user.id;
+      // Use user ID from localStorage if available, otherwise pass undefined
+      const shopUserId = user?.id;
 
       const result = await overrideCustomerOTP(
         customer.id,
@@ -206,12 +207,12 @@ export function OTPOverrideDialog({
               id="explanation"
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
-              placeholder="Provide detailed explanation for this override (minimum 10 characters)..."
+              placeholder="Include your full name and provide detailed explanation (minimum 20 characters). Example: John Smith - Customer's phone is broken..."
               className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 min-h-[100px]"
               required
             />
             <p className="text-xs text-slate-500">
-              {explanation.length}/10 characters minimum
+              {explanation.length}/20 characters minimum (must include your name)
             </p>
           </div>
 
@@ -234,7 +235,7 @@ export function OTPOverrideDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || !reason || explanation.trim().length < 10}
+            disabled={isSubmitting || !reason || explanation.trim().length < 20}
             className="bg-yellow-600 hover:bg-yellow-700 text-white"
           >
             {isSubmitting ? (

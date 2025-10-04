@@ -287,7 +287,7 @@ export async function overrideCustomerOTP(
   customerId: string,
   reason: OtpOverrideReason,
   explanation: string,
-  shopUserId: string,
+  shopUserId?: string,
   orderId?: string
 ): Promise<OTPOverrideResult> {
   try {
@@ -318,7 +318,7 @@ export async function overrideCustomerOTP(
       .insert(otpOverrideLogs)
       .values({
         subscriberId: customerId,
-        shopUserId,
+        shopUserId: shopUserId || null, // Pass null if no shop user logged in
         orderId,
         reason,
         explanation: explanation.trim(),

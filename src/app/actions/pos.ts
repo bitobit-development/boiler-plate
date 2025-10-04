@@ -173,6 +173,7 @@ export async function searchCustomers(query: string): Promise<Subscriber[]> {
         or(
           sql`LOWER(${subscribers.name}) LIKE ${searchPattern}`,
           sql`LOWER(${subscribers.surname}) LIKE ${searchPattern}`,
+          sql`LOWER(CONCAT(${subscribers.name}, ' ', ${subscribers.surname})) LIKE ${searchPattern}`,
           sql`LOWER(${subscribers.email}) LIKE ${searchPattern}`,
           like(subscribers.mobile, `%${query}%`)
         )
