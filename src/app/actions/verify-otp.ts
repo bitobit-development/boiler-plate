@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { subscribers } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -120,7 +121,30 @@ export async function verifyOtpAction(
 
     console.log(`Mobile verified successfully for ${updatedSubscriber.email}`);
 
-    // 8. Invalidate caches
+    // 8. Set cookies for authenticated session
+    const cookieStore = await cookies();
+
+    // Set subscriber_id cookie (30 days)
+    cookieStore.set('subscriber_id', updatedSubscriber.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+    });
+
+    // Set just_subscribed flag (10 minutes) for first-time notification
+    cookieStore.set('just_subscribed', 'true', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    });
+
+    console.log(`Cookies set for subscriber: ${updatedSubscriber.id}`);
+
+    // 9. Invalidate caches
     await Promise.all([
       deletePattern(CacheKeys.patterns.allRegistrations()),
       deletePattern(CacheKeys.patterns.allStats()),

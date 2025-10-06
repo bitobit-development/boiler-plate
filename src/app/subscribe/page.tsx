@@ -10,6 +10,7 @@ import { subscribeAction } from "@/app/actions/subscribe";
 import { subscriptionSchema, type SubscriptionFormData } from "@/lib/validations/subscription";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { Loader2 } from "lucide-react";
 
 export default function Subscribe() {
   const router = useRouter();
@@ -269,35 +270,10 @@ export default function Subscribe() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-orange-500 text-white font-semibold text-lg px-12 py-4 rounded-full glow-pulse hover:scale-105 transition-transform duration-300 ease-in-out min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full bg-orange-500 text-white font-semibold text-lg px-12 py-4 rounded-full glow-pulse hover:scale-105 transition-transform duration-300 ease-in-out min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
             >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Submitting...
-                </span>
-              ) : (
-                "Submit"
-              )}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </form>
         </div>

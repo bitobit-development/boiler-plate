@@ -67,8 +67,8 @@ export function ProductGrid({
     return (
       <div className={cn("flex flex-col items-center justify-center py-16 px-4", className)}>
         <Package className="h-16 w-16 text-zinc-600 mb-4" />
-        <h3 className="text-xl font-semibold text-zinc-400 mb-2">No Products Available</h3>
-        <p className="text-zinc-500 text-center max-w-md">
+        <h3 className="text-xl font-semibold text-zinc-300 mb-2">No Products Available</h3>
+        <p className="text-zinc-400 text-center max-w-md">
           We're currently updating our inventory. Please check back soon for amazing cannabis products.
         </p>
       </div>
@@ -81,13 +81,20 @@ export function ProductGrid({
         const categoryProducts = groupedProducts[category];
         if (!categoryProducts || categoryProducts.length === 0) return null;
 
+        // Create a slug from category name for use as ID
+        const categorySlug = category.toLowerCase().replace(/\s+/g, "-");
+
         return (
-          <section key={category} className="space-y-6">
+          <section
+            key={category}
+            id={`category-${categorySlug}`}
+            className="space-y-6 scroll-mt-24"
+          >
             {showCategoryHeaders && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h2 className="text-2xl font-bold text-white">{category}</h2>
-                  <span className="px-2 py-1 bg-zinc-800 text-zinc-400 text-sm rounded-full">
+                  <span className="px-2 py-1 bg-zinc-800 text-zinc-300 text-sm rounded-full">
                     {categoryProducts.length} {categoryProducts.length === 1 ? "product" : "products"}
                   </span>
                 </div>
@@ -131,8 +138,8 @@ export function SimpleProductGrid({
     return (
       <div className={cn("flex flex-col items-center justify-center py-16 px-4", className)}>
         <Package className="h-16 w-16 text-zinc-600 mb-4" />
-        <h3 className="text-xl font-semibold text-zinc-400 mb-2">No Products Found</h3>
-        <p className="text-zinc-500 text-center max-w-md">
+        <h3 className="text-xl font-semibold text-zinc-300 mb-2">No Products Found</h3>
+        <p className="text-zinc-400 text-center max-w-md">
           Try adjusting your filters or browse all products to find what you're looking for.
         </p>
       </div>

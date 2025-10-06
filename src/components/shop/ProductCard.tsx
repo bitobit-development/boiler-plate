@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,8 @@ import {
   ShoppingCart,
   Crown,
   Sparkles,
+  Loader2,
+  ArrowDown,
 } from "lucide-react";
 import {
   getProductIcon,
@@ -39,6 +42,8 @@ export function ProductCard({
   onAddToCart,
   className,
 }: ProductCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const isInStock = product.quantity > 0;
   const categoryName = product.category?.name || "Cannabis";
 
@@ -56,6 +61,12 @@ export function ProductCard({
     if (onAddToCart && isMember && isInStock) {
       onAddToCart(product);
     }
+  };
+
+  const handleSubscribeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    router.push("/subscribe");
   };
 
   return (
@@ -169,19 +180,54 @@ export function ProductCard({
         </CardHeader>
 
         <CardContent className="p-4 space-y-3">
-          {/* Category Badge with gradient */}
-          <Badge
-            variant="outline"
-            className={cn(
-              "w-fit text-xs font-medium text-white border-0",
-              "bg-gradient-to-r",
-              productTypeColor.gradient,
-              "shadow-sm",
-              productTypeColor.shadow
+          {/* Badges Row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Category Badge with gradient */}
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-xs font-medium text-white border-0",
+                "bg-gradient-to-r",
+                productTypeColor.gradient,
+                "shadow-sm",
+                productTypeColor.shadow
+              )}
+            >
+              {categoryName}
+            </Badge>
+
+            {/* Member Exclusive Badge */}
+            {isMember && (
+              <Badge
+                variant="outline"
+                className="text-xs font-medium bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-400 border-emerald-500/30"
+              >
+                <Crown className="h-3 w-3 mr-1" />
+                Member Exclusive
+              </Badge>
             )}
-          >
-            {categoryName}
-          </Badge>
+
+            {/* Savings Badge for high discount items */}
+            {product.comparePrice && product.comparePrice > product.price && (
+              (() => {
+                const savingsPercentage = Math.round(
+                  ((product.comparePrice - product.price) / product.comparePrice) * 100
+                );
+                if (savingsPercentage >= 30) {
+                  return (
+                    <Badge
+                      variant="outline"
+                      className="text-xs font-medium bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-400 border-red-500/30 animate-pulse"
+                    >
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                      {savingsPercentage}% OFF
+                    </Badge>
+                  );
+                }
+                return null;
+              })()
+            )}
+          </div>
 
           {/* Product Name */}
           <h3 className="font-semibold text-lg text-white line-clamp-2 min-h-[3.5rem]">
@@ -190,7 +236,7 @@ export function ProductCard({
 
           {/* Description */}
           {product.shortDescription && (
-            <p className="text-sm text-zinc-400 line-clamp-2 min-h-[2.5rem]">
+            <p className="text-sm text-zinc-300 line-clamp-2 min-h-[2.5rem]">
               {product.shortDescription}
             </p>
           )}
@@ -198,14 +244,14 @@ export function ProductCard({
           {/* Enhanced Product Attributes with colors */}
           <div className="flex flex-wrap gap-2">
             {product.weight && (
-              <Badge variant="secondary" className="text-xs bg-zinc-800/50 border-zinc-700">
+              <Badge variant="secondary" className="text-xs bg-zinc-800 border-zinc-600 text-zinc-200">
                 {product.weight}
               </Badge>
             )}
             {product.potency && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="secondary" className="text-xs bg-violet-950/30 border-violet-800/50 text-violet-300">
+                  <Badge variant="secondary" className="text-xs bg-violet-900/50 border-violet-700 text-violet-200">
                     {product.potency}
                   </Badge>
                 </TooltipTrigger>
@@ -222,7 +268,7 @@ export function ProductCard({
                     className={cn(
                       "text-xs border transition-all duration-200",
                       "hover:scale-105",
-                      strainColor.text,
+                      "text-white",
                       "bg-gradient-to-r opacity-90",
                       strainColor.gradient
                     )}
@@ -271,11 +317,23 @@ export function ProductCard({
             )}
           </Button>
         ) : (
-          <Link href="/subscribe" className="w-full">
-            <Button className="w-full bg-amber-600 hover:bg-amber-500 text-white">
-              Subscribe to Purchase
-            </Button>
-          </Link>
+          <Button
+            onClick={handleSubscribeClick}
+            disabled={isLoading}
+            className={cn(
+              "w-full bg-amber-600 hover:bg-amber-500 text-white transition-all duration-200",
+              "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            )}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Redirecting...
+              </>
+            ) : (
+              "Subscribe to Purchase"
+            )}
+          </Button>
         )}
         </CardFooter>
       </Card>

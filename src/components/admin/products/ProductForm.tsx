@@ -38,6 +38,7 @@ import {
   Cannabis,
   Image as ImageIcon,
   Search,
+  Loader2,
 } from "lucide-react";
 import {
   createProductSchema,
@@ -58,6 +59,7 @@ interface ProductFormProps {
 export function ProductForm({ product, categories, mode = "create" }: ProductFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const form = useForm<CreateProductInput | UpdateProductInput>({
     resolver: zodResolver(mode === "create" ? createProductSchema : updateProductSchema),
@@ -911,9 +913,15 @@ export function ProductForm({ product, categories, mode = "create" }: ProductFor
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/admin/products")}
+            onClick={() => {
+              setIsNavigating(true);
+              router.push("/admin/products");
+            }}
+            disabled={isNavigating}
+            className="disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancel
+            {isNavigating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isNavigating ? "Redirecting..." : "Cancel"}
           </Button>
           <div className="flex items-center gap-2">
             {watchStatus === "draft" && (

@@ -10,6 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -25,6 +26,8 @@ interface Country {
   pattern?: string;
 }
 
+// Countries array sorted with longer/more specific codes first to handle
+// duplicate dial codes correctly (e.g., +1 for US/Canada/Caribbean)
 const COUNTRIES: Country[] = [
   { name: "Afghanistan", code: "+93", flag: "🇦🇫" },
   { name: "Albania", code: "+355", flag: "🇦🇱" },
@@ -36,6 +39,7 @@ const COUNTRIES: Country[] = [
   { name: "Australia", code: "+61", flag: "🇦🇺", pattern: "XXX XXX XXX" },
   { name: "Austria", code: "+43", flag: "🇦🇹" },
   { name: "Azerbaijan", code: "+994", flag: "🇦🇿" },
+  // NANP countries with specific area codes come BEFORE generic +1
   { name: "Bahamas", code: "+1242", flag: "🇧🇸" },
   { name: "Bahrain", code: "+973", flag: "🇧🇭" },
   { name: "Bangladesh", code: "+880", flag: "🇧🇩" },
@@ -55,7 +59,6 @@ const COUNTRIES: Country[] = [
   { name: "Burundi", code: "+257", flag: "🇧🇮" },
   { name: "Cambodia", code: "+855", flag: "🇰🇭" },
   { name: "Cameroon", code: "+237", flag: "🇨🇲" },
-  { name: "Canada", code: "+1", flag: "🇨🇦", pattern: "(XXX) XXX-XXXX" },
   { name: "Cape Verde", code: "+238", flag: "🇨🇻" },
   { name: "Central African Republic", code: "+236", flag: "🇨🇫" },
   { name: "Chad", code: "+235", flag: "🇹🇩" },
@@ -71,6 +74,7 @@ const COUNTRIES: Country[] = [
   { name: "Czech Republic", code: "+420", flag: "🇨🇿" },
   { name: "Denmark", code: "+45", flag: "🇩🇰" },
   { name: "Djibouti", code: "+253", flag: "🇩🇯" },
+  // More NANP countries with specific area codes
   { name: "Dominica", code: "+1767", flag: "🇩🇲" },
   { name: "Dominican Republic", code: "+1809", flag: "🇩🇴" },
   { name: "Ecuador", code: "+593", flag: "🇪🇨" },
@@ -90,6 +94,7 @@ const COUNTRIES: Country[] = [
   { name: "Germany", code: "+49", flag: "🇩🇪", pattern: "XXX XXXXXXX" },
   { name: "Ghana", code: "+233", flag: "🇬🇭" },
   { name: "Greece", code: "+30", flag: "🇬🇷" },
+  // More NANP countries with specific area codes
   { name: "Grenada", code: "+1473", flag: "🇬🇩" },
   { name: "Guatemala", code: "+502", flag: "🇬🇹" },
   { name: "Guinea", code: "+224", flag: "🇬🇳" },
@@ -107,10 +112,10 @@ const COUNTRIES: Country[] = [
   { name: "Ireland", code: "+353", flag: "🇮🇪" },
   { name: "Israel", code: "+972", flag: "🇮🇱" },
   { name: "Italy", code: "+39", flag: "🇮🇹", pattern: "XXX XXX XXXX" },
+  // More NANP countries with specific area codes
   { name: "Jamaica", code: "+1876", flag: "🇯🇲" },
   { name: "Japan", code: "+81", flag: "🇯🇵", pattern: "XX-XXXX-XXXX" },
   { name: "Jordan", code: "+962", flag: "🇯🇴" },
-  { name: "Kazakhstan", code: "+7", flag: "🇰🇿" },
   { name: "Kenya", code: "+254", flag: "🇰🇪" },
   { name: "Kiribati", code: "+686", flag: "🇰🇮" },
   { name: "Kuwait", code: "+965", flag: "🇰🇼" },
@@ -166,8 +171,8 @@ const COUNTRIES: Country[] = [
   { name: "Portugal", code: "+351", flag: "🇵🇹" },
   { name: "Qatar", code: "+974", flag: "🇶🇦" },
   { name: "Romania", code: "+40", flag: "🇷🇴" },
-  { name: "Russia", code: "+7", flag: "🇷🇺" },
   { name: "Rwanda", code: "+250", flag: "🇷🇼" },
+  // More NANP countries with specific area codes
   { name: "Saint Kitts and Nevis", code: "+1869", flag: "🇰🇳" },
   { name: "Saint Lucia", code: "+1758", flag: "🇱🇨" },
   { name: "Saint Vincent and the Grenadines", code: "+1784", flag: "🇻🇨" },
@@ -201,6 +206,7 @@ const COUNTRIES: Country[] = [
   { name: "Timor-Leste", code: "+670", flag: "🇹🇱" },
   { name: "Togo", code: "+228", flag: "🇹🇬" },
   { name: "Tonga", code: "+676", flag: "🇹🇴" },
+  // More NANP countries with specific area codes
   { name: "Trinidad and Tobago", code: "+1868", flag: "🇹🇹" },
   { name: "Tunisia", code: "+216", flag: "🇹🇳" },
   { name: "Turkey", code: "+90", flag: "🇹🇷" },
@@ -210,7 +216,6 @@ const COUNTRIES: Country[] = [
   { name: "Ukraine", code: "+380", flag: "🇺🇦" },
   { name: "United Arab Emirates", code: "+971", flag: "🇦🇪" },
   { name: "United Kingdom", code: "+44", flag: "🇬🇧", pattern: "XXXX XXX XXXX" },
-  { name: "United States", code: "+1", flag: "🇺🇸", pattern: "(XXX) XXX-XXXX" },
   { name: "Uruguay", code: "+598", flag: "🇺🇾" },
   { name: "Uzbekistan", code: "+998", flag: "🇺🇿" },
   { name: "Vanuatu", code: "+678", flag: "🇻🇺" },
@@ -220,6 +225,25 @@ const COUNTRIES: Country[] = [
   { name: "Yemen", code: "+967", flag: "🇾🇪" },
   { name: "Zambia", code: "+260", flag: "🇿🇲" },
   { name: "Zimbabwe", code: "+263", flag: "🇿🇼" },
+  // Generic +1 countries (US/Canada) come AFTER all specific +1xxx codes
+  { name: "United States", code: "+1", flag: "🇺🇸", pattern: "(XXX) XXX-XXXX" },
+  { name: "Canada", code: "+1", flag: "🇨🇦", pattern: "(XXX) XXX-XXXX" },
+  // Russia comes before Kazakhstan as it's more common for +7
+  { name: "Russia", code: "+7", flag: "🇷🇺" },
+  { name: "Kazakhstan", code: "+7", flag: "🇰🇿" },
+];
+
+// Popular countries for quick access
+// These are commonly used countries that appear at the top of the selector
+const POPULAR_COUNTRIES: Country[] = [
+  { name: "United States", code: "+1", flag: "🇺🇸", pattern: "(XXX) XXX-XXXX" },
+  { name: "United Kingdom", code: "+44", flag: "🇬🇧", pattern: "XXXX XXX XXX" },
+  { name: "Canada", code: "+1", flag: "🇨🇦", pattern: "(XXX) XXX-XXXX" },
+  { name: "Australia", code: "+61", flag: "🇦🇺", pattern: "XXX XXX XXX" },
+  { name: "South Africa", code: "+27", flag: "🇿🇦", pattern: "XX XXX XXXX" },
+  { name: "Israel", code: "+972", flag: "🇮🇱", pattern: "XX-XXX-XXXX" },
+  { name: "Germany", code: "+49", flag: "🇩🇪", pattern: "XXX XXXXXXX" },
+  { name: "France", code: "+33", flag: "🇫🇷", pattern: "X XX XX XX XX" },
 ];
 
 interface PhoneInputProps {
@@ -262,6 +286,7 @@ export function PhoneInput({
 
     // Handle country code detection if user types +
     if (input.startsWith("+")) {
+      // Try to find a matching country code (including partial matches)
       const matchedCountry = COUNTRIES.find((country) =>
         input.startsWith(country.code)
       );
@@ -271,14 +296,44 @@ export function PhoneInput({
         onChange?.(input.replace(/\s/g, ""));
         return;
       }
+
+      // Preserve the "+" for partial country code entry
+      // Only clean digits after the +, keeping the + prefix
+      const digitsAfterPlus = input.slice(1).replace(/[^\d]/g, "");
+      const cleanedWithPlus = `+${digitsAfterPlus}`;
+      setPhoneNumber(cleanedWithPlus);
+      onChange?.(cleanedWithPlus);
+      return;
     }
 
     // Handle local numbers starting with 0 (auto-convert to country code)
-    if (input.startsWith("0") && selectedCountry.code === "+27") {
-      input = input.slice(1);
+    // Many countries use 0 for local dialing which should be removed for international format
+    // Including: Israel (+972), South Africa (+27), UK (+44), and many others
+    if (input.startsWith("0")) {
+      // List of country codes where leading 0 should be removed
+      const countriesWithLeadingZero = [
+        "+27",  // South Africa
+        "+972", // Israel
+        "+44",  // United Kingdom
+        "+33",  // France
+        "+39",  // Italy
+        "+49",  // Germany
+        "+31",  // Netherlands
+        "+32",  // Belgium
+        "+41",  // Switzerland
+        "+43",  // Austria
+        "+81",  // Japan
+        "+82",  // South Korea
+        "+61",  // Australia
+        "+64",  // New Zealand
+      ];
+
+      if (countriesWithLeadingZero.includes(selectedCountry.code)) {
+        input = input.slice(1);
+      }
     }
 
-    // Clean input - remove non-digits except leading +
+    // Clean input - remove all non-digits for regular phone numbers
     const cleaned = input.replace(/[^\d]/g, "");
     setPhoneNumber(cleaned);
 
@@ -297,7 +352,7 @@ export function PhoneInput({
   };
 
   return (
-    <div className={cn("flex gap-2", className)}>
+    <div className={cn("flex flex-col sm:flex-row gap-2 w-full", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -306,7 +361,8 @@ export function PhoneInput({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              "w-[140px] justify-between bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:text-white",
+              "w-full sm:w-[40%] justify-between bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:text-white",
+              "h-[50px]", // Match the height of input fields with py-3
               error && "border-red-500"
             )}
           >
@@ -327,18 +383,58 @@ export function PhoneInput({
               <CommandEmpty className="text-gray-400 py-6 text-center text-sm">
                 No country found.
               </CommandEmpty>
-              <CommandGroup>
-                {COUNTRIES.map((country) => (
+
+              {/* Popular Countries Section */}
+              <CommandGroup heading="Popular">
+                {POPULAR_COUNTRIES.map((country) => (
                   <CommandItem
-                    key={country.code + country.name}
+                    key={`popular-${country.code}-${country.name}`}
                     value={`${country.name} ${country.code}`}
-                    onSelect={() => handleCountrySelect(country)}
+                    onSelect={() => {
+                      handleCountrySelect(country);
+                    }}
+                    onClick={() => {
+                      handleCountrySelect(country);
+                    }}
                     className="text-white hover:bg-gray-700 cursor-pointer"
                   >
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        selectedCountry.code === country.code
+                        selectedCountry.name === country.name
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                    <span className="text-xl mr-2">{country.flag}</span>
+                    <span className="flex-1">{country.name}</span>
+                    <span className="text-gray-400 text-sm">
+                      {country.code}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+
+              <CommandSeparator className="bg-gray-700" />
+
+              {/* All Countries Section */}
+              <CommandGroup heading="All Countries">
+                {COUNTRIES.map((country) => (
+                  <CommandItem
+                    key={country.code + country.name}
+                    value={`${country.name} ${country.code}`}
+                    onSelect={() => {
+                      handleCountrySelect(country);
+                    }}
+                    onClick={() => {
+                      handleCountrySelect(country);
+                    }}
+                    className="text-white hover:bg-gray-700 cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedCountry.name === country.name
                           ? "opacity-100"
                           : "opacity-0"
                       )}
@@ -365,7 +461,7 @@ export function PhoneInput({
           selectedCountry.pattern || "Enter phone number"
         }
         className={cn(
-          "flex-1 px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded-lg",
+          "w-full sm:flex-1 px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded-lg",
           "focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/50",
           "transition-all duration-200",
           error && "border-red-500 focus:border-red-500 focus:ring-red-500/50",

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Lock } from "lucide-react";
+import { Crown, ArrowDown, Tag } from "lucide-react";
 
 interface PriceDisplayProps {
   price: number | null;
@@ -34,6 +34,11 @@ export function PriceDisplay({
     return showCurrency ? `R${formatted}` : formatted;
   };
 
+  // Calculate member price (20% discount for members)
+  const getMemberPrice = (regularPrice: number) => {
+    return Math.round(regularPrice * 0.8); // 20% off for members
+  };
+
   // Size classes
   const sizeClasses = {
     sm: "text-sm",
@@ -49,6 +54,13 @@ export function PriceDisplay({
     xl: "text-3xl",
   };
 
+  const smallerPriceSizeClasses = {
+    sm: "text-base",
+    md: "text-lg",
+    lg: "text-xl",
+    xl: "text-2xl",
+  };
+
   // If price is null, show placeholder
   if (price === null) {
     return (
@@ -62,33 +74,82 @@ export function PriceDisplay({
     );
   }
 
-  // Show prices to everyone (members and non-members)
-  return (
-    <div className={cn("flex items-center gap-2", className)}>
-      {comparePrice && comparePrice > price && (
-        <span
-          className={cn(
-            "text-zinc-500 line-through",
-            sizeClasses[size]
-          )}
-        >
-          {formatPrice(comparePrice)}
-        </span>
-      )}
-      <span
-        className={cn(
-          "font-bold text-white",
-          priceSizeClasses[size],
-          comparePrice && comparePrice > price && "text-emerald-500"
-        )}
-      >
-        {formatPrice(price)}
-      </span>
-      {comparePrice && comparePrice > price && (
-        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-xs font-semibold rounded-full border border-emerald-500/20">
-          {Math.round(((comparePrice - price) / comparePrice) * 100)}% OFF
-        </span>
-      )}
-    </div>
-  );
+  const memberPrice = getMemberPrice(price);
+  const savings = price - memberPrice;
+  const savingsPercentage = Math.round((savings / price) * 100);
+
+  // Show differentiated pricing for members vs non-members
+  if (isMember) {
+    // Member view - show member price prominently
+    return (
+      <div className={cn("flex flex-col gap-1", className)}>
+        <div className="flex items-center gap-2">
+          {/* Member price badge */}
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-full border border-emerald-500/30">
+            <Crown className="h-3 w-3 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">Member Price</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Original price (struck through) */}
+          <span className={cn("text-zinc-500 line-through", smallerPriceSizeClasses[size])}>
+            {formatPrice(price)}
+          </span>
+          {/* Member price */}
+          <span
+            className={cn(
+              "font-bold text-emerald-500",
+              priceSizeClasses[size],
+              "drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+            )}
+          >
+            {formatPrice(memberPrice)}
+          </span>
+          {/* Savings badge */}
+          <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-xs font-semibold rounded-full border border-emerald-500/20">
+            Save {savingsPercentage}%
+          </span>
+        </div>
+      </div>
+    );
+  } else {
+    // Non-member view - show both prices to entice subscription
+    return (
+      <div className={cn("flex flex-col gap-2", className)}>
+        {/* Regular price */}
+        <div className="flex items-center gap-2">
+          <span className={cn("text-zinc-400 text-sm")}>Regular Price:</span>
+          <span
+            className={cn(
+              "font-bold text-zinc-300",
+              smallerPriceSizeClasses[size]
+            )}
+          >
+            {formatPrice(price)}
+          </span>
+        </div>
+
+        {/* Member price (highlighted to show benefit) */}
+        <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-lg border border-amber-500/20">
+          <Crown className="h-4 w-4 text-amber-400" />
+          <span className="text-sm font-medium text-amber-400">Member Price:</span>
+          <span
+            className={cn(
+              "font-bold text-amber-400",
+              priceSizeClasses[size],
+              "drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]"
+            )}
+          >
+            {formatPrice(memberPrice)}
+          </span>
+          <div className="flex items-center gap-1 ml-auto">
+            <ArrowDown className="h-3 w-3 text-amber-400" />
+            <span className="text-xs font-semibold text-amber-400">
+              Save R{Math.round(savings / 100)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

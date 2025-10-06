@@ -2,12 +2,13 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import ParticleBackground from "@/components/subscription/ParticleBackground";
-import { CheckCircle } from "lucide-react";
-import { useEffect, Suspense } from "react";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useEffect, Suspense, useState } from "react";
 
 function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Get user data from URL params
   const name = searchParams.get("name");
@@ -63,11 +64,16 @@ function SuccessContent() {
 
         {/* Check Products Button */}
         <button
-          onClick={() => router.push("/specials")}
-          className="mt-8 bg-orange-500 text-white font-semibold text-base sm:text-lg px-8 sm:px-12 py-3 sm:py-4 rounded-full glow-pulse hover:scale-105 transition-transform duration-300 ease-in-out min-h-[48px] cursor-pointer"
+          onClick={() => {
+            setIsLoading(true);
+            router.push("/specials");
+          }}
+          disabled={isLoading}
+          className="mt-8 bg-orange-500 text-white font-semibold text-base sm:text-lg px-8 sm:px-12 py-3 sm:py-4 rounded-full glow-pulse hover:scale-105 transition-transform duration-300 ease-in-out min-h-[48px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
           type="button"
         >
-          Check Our Products
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />}
+          {isLoading ? "Redirecting..." : "Check Our Products"}
         </button>
       </main>
     </div>

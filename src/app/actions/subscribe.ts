@@ -8,6 +8,7 @@ import { ZodError } from "zod";
 import { deletePattern, CacheKeys } from "@/lib/cache";
 import { generateOTP, hashOTP, getOTPExpiration } from "@/lib/otp";
 import { sendOTPSMS } from "@/lib/services/sms";
+import { validateAndFormatPhone } from "@/lib/utils/phone-validation";
 
 // Helper to mask phone number for display
 function maskPhoneNumber(phone: string): string {
@@ -37,7 +38,42 @@ export async function subscribeAction(
     // 1. Validate input data with Zod
     const validatedData = subscriptionSchema.parse(formData);
 
-    // 2. Check for duplicate email
+    // 2. Validate and format phone number to E.164 (additional validation layer)
+    // This ensures the phone number is in the correct format regardless of input
+    // The mobile field from validatedData is already in E.164 format (e.g., "+972505489909")
+    // We extract the country code and validate with libphonenumber-js
+    const mobileWithCountryCode = validatedData.mobile;
+
+    // Extract country code from the E.164 number
+    const countryCodeMatch = mobileWithCountryCode.match(/^(\+\d{1,3})/);
+    if (!countryCodeMatch) {
+      return {
+        success: false,
+        error: "Invalid phone number format. Please select a country code and enter your number.",
+        field: "mobile",
+      };
+    }
+
+    const countryCode = countryCodeMatch[1];
+    const phoneWithoutCountryCode = mobileWithCountryCode.substring(countryCode.length);
+
+    // Validate using libphonenumber-js to ensure correct E.164 format
+    const phoneValidation = validateAndFormatPhone(phoneWithoutCountryCode, countryCode);
+
+    if (!phoneValidation.isValid) {
+      return {
+        success: false,
+        error: phoneValidation.error || "Please enter a valid phone number for the selected country",
+        field: "mobile",
+      };
+    }
+
+    // Use the validated E.164 format from libphonenumber-js
+    const validatedMobile = phoneValidation.e164!;
+
+    console.log(`Phone validation: Input="${mobileWithCountryCode}" → E.164="${validatedMobile}"`);
+
+    // 3. Check for duplicate email
     const existingEmail = await db
       .select()
       .from(subscribers)
@@ -52,11 +88,11 @@ export async function subscribeAction(
       };
     }
 
-    // 3. Check for duplicate mobile
+    // 4. Check for duplicate mobile
     const existingMobile = await db
       .select()
       .from(subscribers)
-      .where(eq(subscribers.mobile, validatedData.mobile))
+      .where(eq(subscribers.mobile, validatedMobile))
       .limit(1);
 
     if (existingMobile.length > 0) {
@@ -67,15 +103,15 @@ export async function subscribeAction(
       };
     }
 
-    // 4. Generate OTP for mobile verification
+    // 5. Generate OTP for mobile verification
     const otpCode = generateOTP();
     const hashedOTP = hashOTP(otpCode);
     const otpExpiration = getOTPExpiration();
 
-    console.log(`Generated OTP for ${validatedData.mobile}: ${otpCode}`);
+    console.log(`Generated OTP for ${validatedMobile}: ${otpCode}`);
 
-    // 5. Send OTP via SMS
-    const smsResult = await sendOTPSMS(validatedData.mobile, otpCode);
+    // 6. Send OTP via SMS (using validated E.164 format)
+    const smsResult = await sendOTPSMS(validatedMobile, otpCode);
 
     if (!smsResult.success) {
       console.error('Failed to send OTP SMS:', smsResult.error);
@@ -88,14 +124,14 @@ export async function subscribeAction(
 
     console.log(`OTP SMS sent successfully via ${smsResult.channel}: ${smsResult.messageId}`);
 
-    // 6. Insert new subscriber with PENDING status and OTP data
+    // 7. Insert new subscriber with PENDING status and OTP data (using validated E.164 format)
     const [newSubscriber] = await db
       .insert(subscribers)
       .values({
         name: validatedData.name,
         surname: validatedData.surname,
         email: validatedData.email,
-        mobile: validatedData.mobile,
+        mobile: validatedMobile, // Use validated E.164 format
         ageVerified: validatedData.ageVerified,
         status: 'pending', // Wait for OTP verification
         mobileVerified: false, // Not verified yet
@@ -108,7 +144,7 @@ export async function subscribeAction(
         id: subscribers.id,
       });
 
-    // 7. Invalidate caches - new registration affects all cached data
+    // 8. Invalidate caches - new registration affects all cached data
     await Promise.all([
       deletePattern(CacheKeys.patterns.allRegistrations()),
       deletePattern(CacheKeys.patterns.allStats()),
@@ -116,11 +152,11 @@ export async function subscribeAction(
     ]);
     console.log('[Cache INVALIDATE] New registration - cleared all caches');
 
-    // 8. Return success with subscriber ID for OTP verification
+    // 9. Return success with subscriber ID for OTP verification
     return {
       success: true,
       subscriberId: newSubscriber.id,
-      maskedPhone: maskPhoneNumber(validatedData.mobile),
+      maskedPhone: maskPhoneNumber(validatedMobile), // Use validated format for display
     };
   } catch (error) {
     // Handle Zod validation errors

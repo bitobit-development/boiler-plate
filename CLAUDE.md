@@ -24,9 +24,42 @@
 - `npm run products:verify-images` - Verify all product images exist
 - `npx tsx scripts/seed-products.ts` - Seed product database
 - `npm run products:check` - Check product data integrity
+- `npx tsx scripts/check-product-prices.ts` - Check product pricing
+- `npx tsx scripts/check-products.ts` - Verify product data
+- `npx tsx scripts/update-product-prices.ts` - Update product prices
+- `npx tsx scripts/update-inventory.ts` - Update inventory levels
 
-### Database
+### Database & Seeding
 - `npx tsx src/lib/db/seed.ts` - Seed admin user & sample data
+- `npx tsx scripts/seed-admin-user.ts` - Seed admin user only
+- `npx tsx scripts/seed-shop-user.ts` - Seed shop/POS user
+
+### Testing Scripts
+- `npx tsx scripts/test-international-sms.ts` - Test SMS to international numbers (Clickatell API)
+- `npx tsx scripts/test-admin-orders.ts` - Test admin orders functionality
+- `npx tsx scripts/test-orders-page.ts` - Test orders page
+- `npx tsx scripts/test-pos-order.ts` - Test POS order creation
+- `npx tsx scripts/test-product-actions.ts` - Test product actions
+- `npx tsx scripts/test-products-api.ts` - Test products API
+- `npx tsx scripts/test-stock-levels.ts` - Test stock levels
+
+### Session & Auth Management
+- `npx tsx scripts/check-admin-sessions.ts` - Check admin sessions
+- `npx tsx scripts/check-sessions.ts` - Check all sessions
+- `npx tsx scripts/clear-admin-session.ts` - Clear admin session
+- `npx tsx scripts/clear-all-sessions.ts` - Clear all sessions
+- `npx tsx scripts/cleanup-sessions.ts` - Cleanup old sessions
+- `npx tsx scripts/check-haim-otp.ts` - Check OTP for test user
+- `npx tsx scripts/get-haim-otp-code.ts` - Get OTP code for test user
+
+### Audit & Debugging
+- `npx tsx scripts/check-audit-logs.ts` - Check audit logs
+- `npx tsx scripts/apply-audit-indexes.ts` - Apply audit indexes
+
+### Subscriber Management
+- `npx tsx scripts/create-demo-registration.ts` - Create demo registration
+- `npx tsx scripts/find-israeli-subscribers.ts` - Find Israeli subscribers
+- `npx tsx scripts/fix-malformed-phone-numbers.ts` - Fix phone number format
 
 ## Tech Stack
 - **Framework**: Next.js 15.5.4 (App Router) + React 19.1.0

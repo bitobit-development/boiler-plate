@@ -21,6 +21,7 @@ interface CategoryFilterProps {
   onCategoryChange: (category: string | undefined) => void;
   productCounts?: Record<string, number>;
   className?: string;
+  scrollMode?: boolean;
 }
 
 // Icon mapping for categories

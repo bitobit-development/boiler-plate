@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import ParticleBackground from '@/components/subscription/ParticleBackground';
-import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { verifyOtpAction, type VerifyOTPResult } from '@/app/actions/verify-otp';
@@ -25,6 +25,7 @@ function OTPVerificationContent() {
   const [otpValue, setOtpValue] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [attemptsRemaining, setAttemptsRemaining] = useState(3);
   const [cooldown, setCooldown] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
@@ -155,12 +156,20 @@ function OTPVerificationContent() {
         <div className="w-full max-w-md">
           {/* Back button */}
           <button
-            onClick={() => router.push('/subscribe')}
-            className="mb-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+            onClick={() => {
+              setIsNavigating(true);
+              router.push('/subscribe');
+            }}
+            disabled={isNavigating}
+            className="mb-6 text-gray-400 hover:text-white transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Go back to registration"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
+            {isNavigating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowLeft className="h-4 w-4" />
+            )}
+            <span>{isNavigating ? "Redirecting..." : "Back"}</span>
           </button>
 
           {/* Main card */}
