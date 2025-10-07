@@ -43,6 +43,7 @@ export interface TokenPayload {
   role: string;
   permissions: string[];
   sessionId?: string;
+  kioskSessionId?: string;
   type: 'access' | 'refresh';
 }
 
@@ -54,7 +55,7 @@ export interface DecodedToken extends TokenPayload {
 /**
  * Generate access and refresh tokens for a user
  */
-export function generateTokens(user: Partial<AdminUserType>, sessionId?: string) {
+export function generateTokens(user: Partial<AdminUserType>, sessionId?: string, kioskSessionId?: string) {
   // Get permissions based on role if not explicitly set
   const permissions = user.permissions || getDefaultPermissions(user.role || 'viewer');
 
@@ -63,7 +64,8 @@ export function generateTokens(user: Partial<AdminUserType>, sessionId?: string)
     email: user.email!,
     role: user.role!,
     permissions,
-    sessionId
+    sessionId,
+    ...(kioskSessionId && { kioskSessionId })
   };
 
   const accessToken = jwt.sign(
@@ -213,6 +215,7 @@ export function refreshAccessToken(refreshToken: string): { accessToken: string;
       role: decoded.role,
       permissions: decoded.permissions,
       sessionId: decoded.sessionId,
+      ...(decoded.kioskSessionId && { kioskSessionId: decoded.kioskSessionId }),
       type: 'access'
     } as TokenPayload,
     ACCESS_SECRET,

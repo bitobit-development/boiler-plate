@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import {
   Phone,
   X,
   Sparkles,
+  ShoppingBag,
+  Loader2,
 } from "lucide-react";
 
 interface SubscriberWelcomeBannerProps {
@@ -27,7 +30,9 @@ export function SubscriberWelcomeBanner({
   dismissible = false,
   className,
 }: SubscriberWelcomeBannerProps) {
+  const router = useRouter();
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Check localStorage for dismissal (only for returning members)
   useEffect(() => {
@@ -40,6 +45,13 @@ export function SubscriberWelcomeBanner({
   const handleDismiss = () => {
     setIsDismissed(true);
     localStorage.setItem("subscriber-banner-dismissed", "true");
+  };
+
+  const handleNavigateToOrders = async () => {
+    setIsNavigating(true);
+    // Small delay to ensure loading state is visible
+    await new Promise(resolve => setTimeout(resolve, 300));
+    router.push("/my-orders");
   };
 
   if (isDismissed) return null;
@@ -108,6 +120,34 @@ export function SubscriberWelcomeBanner({
                   <span className="text-sm">Lab Tested</span>
                 </div>
               </div>
+
+              {/* View My Orders Button */}
+              <div className="pt-4 flex justify-center sm:justify-start">
+                <Button
+                  variant="outline"
+                  onClick={handleNavigateToOrders}
+                  disabled={isNavigating}
+                  className={cn(
+                    "border-emerald-500/50 bg-emerald-500/10 text-emerald-300",
+                    "hover:bg-emerald-500/20 hover:text-emerald-200 hover:border-emerald-500",
+                    "focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                    "transition-colors",
+                    "disabled:opacity-70 disabled:cursor-not-allowed"
+                  )}
+                >
+                  {isNavigating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="mr-2 h-4 w-4" aria-hidden="true" />
+                      View My Orders
+                    </>
+                  )}
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         </div>
@@ -130,12 +170,41 @@ export function SubscriberWelcomeBanner({
           <AlertTitle className="text-lg font-semibold text-white">
             Member Exclusive Access
           </AlertTitle>
-          <AlertDescription className="text-zinc-300">
+          <AlertDescription className="text-zinc-300 space-y-3">
             <div className="flex items-start gap-2">
               <Store className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
               <p>
                 Visit our shop with your registered mobile number to purchase at exclusive member prices.
               </p>
+            </div>
+
+            {/* View My Orders Button */}
+            <div className="pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNavigateToOrders}
+                disabled={isNavigating}
+                className={cn(
+                  "border-amber-500/50 bg-amber-500/10 text-amber-300",
+                  "hover:bg-amber-500/20 hover:text-amber-200 hover:border-amber-500",
+                  "focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2",
+                  "transition-colors",
+                  "disabled:opacity-70 disabled:cursor-not-allowed"
+                )}
+              >
+                {isNavigating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="mr-2 h-4 w-4" aria-hidden="true" />
+                    View My Orders
+                  </>
+                )}
+              </Button>
             </div>
           </AlertDescription>
 

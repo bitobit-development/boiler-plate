@@ -10,7 +10,13 @@ if (!process.env.DATABASE_URL_UNPOOLED) {
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: ["./src/lib/db/schema.ts", "./src/lib/db/schema/products.ts"],
+  schema: [
+    "./src/lib/db/schema.ts",
+    "./src/lib/db/schema/products.ts",
+    "./src/lib/db/schema/orders.ts",
+    "./src/lib/db/schema/carts.ts",
+    "./src/lib/db/schema/member-pricing.ts"
+  ],
   out: "./drizzle",
   dbCredentials: {
     url: process.env.DATABASE_URL_UNPOOLED,

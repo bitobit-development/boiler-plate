@@ -4,6 +4,7 @@ import { AdminSession } from '@/lib/db/models/AdminSession';
 import { AuditLog } from '@/lib/db/models/AuditLog';
 import { generateTokens } from '@/lib/auth/jwt';
 import { rateLimit } from '@/lib/auth/middleware';
+import { startKioskSession } from '@/lib/pos/kiosk-session';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -145,6 +146,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create kiosk session for shop_user role BEFORE generating JWT
+    let kioskSessionId: string | undefined;
+    if (user.role === 'shop_user') {
+      try {
+        const userAgent = request.headers.get('user-agent') || 'unknown';
+        const kioskResult = await startKioskSession(
+          user.id,
+          'POS-KIOSK-001', // Hardcoded kiosk ID for now
+          {
+            fingerprint: 'web-pos',
+            ipAddress: ip,
+            userAgent: userAgent
+          },
+          {
+            name: 'Main Shop',
+            code: 'MAIN-01'
+          }
+        );
+
+        if (kioskResult.success && kioskResult.session) {
+          kioskSessionId = kioskResult.session.id;
+          console.log('[Login] Kiosk session created:', kioskSessionId);
+        } else {
+          console.error('[Login] Failed to create kiosk session:', kioskResult.error || kioskResult.message);
+        }
+      } catch (error) {
+        // Don't block login if kiosk session creation fails
+        console.error('[Login] Error creating kiosk session:', error);
+      }
+    }
+
     // Create session with temporary tokens to get session ID
     // Sessions are limited to 5 per user and expire after 6 hours
     const tempAccessToken = AdminSession.generateToken();
@@ -160,8 +192,12 @@ export async function POST(request: NextRequest) {
       status: 'active'
     });
 
-    // Generate JWT tokens with session ID
-    const { accessToken, refreshToken, accessExpiresAt, refreshExpiresAt } = generateTokens(user, session.id);
+    // Generate JWT tokens with session ID and kiosk session ID (if shop_user)
+    const { accessToken, refreshToken, accessExpiresAt, refreshExpiresAt } = generateTokens(
+      user,
+      session.id,
+      kioskSessionId
+    );
 
     // Update session with JWT tokens
     await AdminSession.updateById(session.id, {
@@ -184,7 +220,8 @@ export async function POST(request: NextRequest) {
       entityName: `${user.firstName} ${user.lastName}`,
       description: `Successful login from IP: ${ip}`,
       metadata: {
-        sessionId: session.id
+        sessionId: session.id,
+        kioskSessionId: kioskSessionId
       },
       ipAddress: ip,
       userAgent: request.headers.get('user-agent') || 'unknown',
@@ -213,7 +250,8 @@ export async function POST(request: NextRequest) {
         accessExpiresAt,
         refreshExpiresAt
       },
-      sessionId: session.id
+      sessionId: session.id,
+      ...(kioskSessionId && { kioskSessionId })
     });
 
     // Set HTTP-only cookies for tokens with 6-hour session

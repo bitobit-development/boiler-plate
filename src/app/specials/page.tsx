@@ -5,6 +5,7 @@ import { ProductGridWrapper } from "@/components/shop/ProductGridWrapper";
 import { MembershipBanner } from "@/components/shop/MembershipBanner";
 import { SubscriberWelcomeBanner } from "@/components/shop/SubscriberWelcomeBanner";
 import { CategoryFilterWrapper } from "@/components/shop/CategoryFilterWrapper";
+import { SpecialsPageClient } from "@/components/shop/SpecialsPageClient";
 import { Badge } from "@/components/ui/badge";
 import {
   Cannabis,
@@ -23,6 +24,7 @@ interface MembershipStatus {
   isMember: boolean;
   justSubscribed: boolean;
   subscriberName?: string;
+  subscriberMobile?: string;
 }
 
 async function checkMembershipStatus(): Promise<MembershipStatus> {
@@ -34,19 +36,27 @@ async function checkMembershipStatus(): Promise<MembershipStatus> {
   // Check if user has any membership credentials
   const isMember = !!(subscriberId || accessToken);
 
-  // Fetch subscriber name if they're a member
+  // Fetch subscriber name, surname, and mobile if they're a member
   let subscriberName: string | undefined;
+  let subscriberMobile: string | undefined;
   if (subscriberId) {
     try {
       const [subscriber] = await db
-        .select({ name: subscribers.name })
+        .select({
+          name: subscribers.name,
+          surname: subscribers.surname,
+          mobile: subscribers.mobile
+        })
         .from(subscribers)
         .where(eq(subscribers.id, subscriberId))
         .limit(1);
 
-      subscriberName = subscriber?.name;
+      if (subscriber) {
+        subscriberName = `${subscriber.name} ${subscriber.surname}`;
+        subscriberMobile = subscriber.mobile;
+      }
     } catch (error) {
-      console.error("Error fetching subscriber name:", error);
+      console.error("Error fetching subscriber info:", error);
     }
   }
 
@@ -54,6 +64,7 @@ async function checkMembershipStatus(): Promise<MembershipStatus> {
     isMember,
     justSubscribed,
     subscriberName,
+    subscriberMobile,
   };
 }
 
@@ -82,7 +93,11 @@ export default async function SpecialsPage({ searchParams }: PageProps) {
   const products = productsResponse.success ? productsResponse.data.products : [];
   const categories = categoriesResponse.success ? categoriesResponse.data : [];
 
-  const { isMember, justSubscribed, subscriberName } = membershipStatus;
+  const { isMember, justSubscribed, subscriberName, subscriberMobile } = membershipStatus;
+
+  // Get subscriber ID from cookies
+  const cookieStore = await cookies();
+  const subscriberId = cookieStore.get("subscriber_id")?.value || null;
 
   // Calculate product counts per category
   const productCounts = products.reduce<Record<string, number>>((acc, product) => {
@@ -92,7 +107,16 @@ export default async function SpecialsPage({ searchParams }: PageProps) {
   }, {});
 
   return (
-    <div className="min-h-screen bg-black">
+    <SpecialsPageClient
+      subscriberId={subscriberId}
+      subscriberName={subscriberName}
+      subscriberMobile={subscriberMobile}
+      products={products}
+      categories={categories}
+      productCounts={productCounts}
+      isMember={isMember}
+    >
+      <div className="min-h-screen bg-black">
       {/* Hero Section - Conditional Banner Based on Subscription Status */}
       {isMember ? (
         // Show subscriber welcome banner for members
@@ -209,6 +233,7 @@ export default async function SpecialsPage({ searchParams }: PageProps) {
         {!isMember && <MembershipBanner variant="floating" />}
       </div>
     </div>
+    </SpecialsPageClient>
   );
 }
 

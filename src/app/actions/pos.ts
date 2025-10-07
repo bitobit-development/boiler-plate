@@ -892,3 +892,264 @@ export async function cancelPOSOrder(
     };
   }
 }
+
+// ====================================
+// PENDING ORDERS INTEGRATION
+// ====================================
+
+export interface PendingOrder {
+  id: string;
+  orderNumber: string;
+  subscriberId: string;
+  customerName: string | null;
+  customerMobile: string | null;
+  items: Array<{
+    productId: string;
+    productName: string;
+    productSku?: string;
+    quantity: number;
+    price: number;
+    subtotal: number;
+  }>;
+  subtotal: number;
+  tax: number;
+  total: number;
+  status: 'pending';
+  createdAt: Date;
+  expiresAt: Date | null;
+}
+
+export interface ConvertOrderToPOSResult {
+  success: boolean;
+  cartItems?: Array<{
+    productId: string;
+    productName: string;
+    quantity: number;
+    price: number;
+  }>;
+  order?: Order;
+  message: string;
+  error?: string;
+}
+
+/**
+ * Get pending orders for a subscriber
+ * Used by POS to display orders waiting for pickup
+ */
+export async function getPendingOrdersBySubscriber(
+  subscriberId: string
+): Promise<{ success: boolean; orders: PendingOrder[]; message?: string }> {
+  try {
+    // Validate subscriber ID
+    if (!subscriberId) {
+      return {
+        success: false,
+        orders: [],
+        message: 'Subscriber ID is required'
+      };
+    }
+
+    // Fetch pending orders for this subscriber
+    const pendingOrders = await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.subscriberId, subscriberId),
+          eq(orders.status, 'pending'),
+          or(
+            sql`${orders.expiresAt} IS NULL`,
+            gte(orders.expiresAt, new Date())
+          )
+        )
+      )
+      .orderBy(sql`${orders.createdAt} DESC`);
+
+    if (pendingOrders.length === 0) {
+      return {
+        success: true,
+        orders: [],
+        message: 'No pending orders found for this customer'
+      };
+    }
+
+    // Transform to PendingOrder type
+    const formattedOrders: PendingOrder[] = pendingOrders.map(order => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      subscriberId: order.subscriberId!,
+      customerName: order.customerName,
+      customerMobile: order.customerMobile,
+      items: order.items,
+      subtotal: order.subtotal,
+      tax: order.tax,
+      total: order.total,
+      status: 'pending' as const,
+      createdAt: order.createdAt,
+      expiresAt: order.expiresAt
+    }));
+
+    return {
+      success: true,
+      orders: formattedOrders,
+      message: `Found ${formattedOrders.length} pending order(s)`
+    };
+  } catch (error) {
+    console.error('Error fetching pending orders:', error);
+    return {
+      success: false,
+      orders: [],
+      message: 'Failed to fetch pending orders'
+    };
+  }
+}
+
+/**
+ * Convert a pending order to POS cart
+ * Loads order items into POS cart and updates order status to confirmed
+ */
+export async function convertPendingOrderToPOS(
+  orderId: string,
+  shopUserId: string
+): Promise<ConvertOrderToPOSResult> {
+  try {
+    // Validate inputs
+    if (!orderId || !shopUserId) {
+      return {
+        success: false,
+        message: 'Order ID and Shop User ID are required',
+        error: 'Invalid input'
+      };
+    }
+
+    // Use transaction for atomic operation
+    const result = await db.transaction(async (tx) => {
+      // Fetch the order
+      const [order] = await tx
+        .select()
+        .from(orders)
+        .where(eq(orders.id, orderId))
+        .limit(1);
+
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      // Verify order is pending
+      if (order.status !== 'pending') {
+        throw new Error(`Order is not pending (current status: ${order.status})`);
+      }
+
+      // Check if order has expired
+      if (order.expiresAt && order.expiresAt < new Date()) {
+        // Auto-cancel expired order
+        await tx
+          .update(orders)
+          .set({
+            status: 'cancelled',
+            cancelledAt: new Date(),
+            updatedAt: new Date(),
+            notes: 'Order expired before POS conversion'
+          })
+          .where(eq(orders.id, orderId));
+
+        throw new Error('Order has expired and has been cancelled');
+      }
+
+      // Validate inventory availability for all items
+      const unavailableItems: string[] = [];
+
+      for (const item of order.items) {
+        const availability = await checkProductStock(item.productId, item.quantity);
+
+        if (!availability.available) {
+          unavailableItems.push(`${item.productName} (requested: ${item.quantity}, available: ${availability.availableQuantity})`);
+        }
+      }
+
+      if (unavailableItems.length > 0) {
+        throw new Error(`Insufficient stock for: ${unavailableItems.join(', ')}`);
+      }
+
+      // Update order status to confirmed
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          status: 'confirmed',
+          shopUserId: shopUserId,
+          updatedAt: new Date(),
+          notes: 'Converted from pending online order to POS'
+        })
+        .where(eq(orders.id, orderId))
+        .returning();
+
+      // Extract cart items for POS
+      const cartItems = order.items.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      return {
+        updatedOrder,
+        cartItems
+      };
+    });
+
+    return {
+      success: true,
+      cartItems: result.cartItems,
+      order: result.updatedOrder,
+      message: 'Order loaded to POS cart successfully'
+    };
+  } catch (error) {
+    console.error('Error converting pending order to POS:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to convert order',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Fetch subscriber by ID
+ * Used to load customer details from orders
+ */
+export async function getSubscriberById(
+  subscriberId: string
+): Promise<{ success: boolean; subscriber?: Subscriber; message?: string }> {
+  try {
+    if (!subscriberId) {
+      return {
+        success: false,
+        message: 'Subscriber ID is required'
+      };
+    }
+
+    const [subscriber] = await db
+      .select()
+      .from(subscribers)
+      .where(eq(subscribers.id, subscriberId))
+      .limit(1);
+
+    if (!subscriber) {
+      return {
+        success: false,
+        message: 'Subscriber not found'
+      };
+    }
+
+    return {
+      success: true,
+      subscriber
+    };
+  } catch (error) {
+    console.error('Error fetching subscriber:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to fetch subscriber'
+    };
+  }
+}

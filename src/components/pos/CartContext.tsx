@@ -30,6 +30,9 @@ export interface CartContextType {
   setCustomer: (customer: Subscriber | null) => void;
   setCustomerVerified: (verified: boolean) => void;
 
+  // Pending orders
+  loadPendingOrder: (orderId: string) => Promise<boolean>;
+
   // Utility
   getItemQuantity: (productId: string) => number;
 }
@@ -178,6 +181,80 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return item?.quantity || 0;
   }, [items]);
 
+  // Load pending order to cart
+  const loadPendingOrder = useCallback(async (orderId: string): Promise<boolean> => {
+    try {
+      // Get shop user ID from localStorage (POS session)
+      const shopUserId = localStorage.getItem('shop_user_id');
+      if (!shopUserId) {
+        toast.error('Shop user session not found. Please log in again.');
+        return false;
+      }
+
+      // Convert pending order to POS
+      const { convertPendingOrderToPOS } = await import('@/app/actions/pos');
+      const result = await convertPendingOrderToPOS(orderId, shopUserId);
+
+      if (!result.success) {
+        toast.error(result.message || 'Failed to load order');
+        return false;
+      }
+
+      // Clear current cart
+      setItems([]);
+
+      // Set customer from the order if available
+      if (result.order?.subscriberId) {
+        try {
+          // Fetch the subscriber details via Server Action
+          const { getSubscriberById } = await import('@/app/actions/pos');
+          const subscriberResult = await getSubscriberById(result.order.subscriberId);
+
+          if (subscriberResult.success && subscriberResult.subscriber) {
+            setCustomer(subscriberResult.subscriber);
+            setCustomerVerified(true);
+          }
+        } catch (error) {
+          console.error('Failed to load customer from order:', error);
+          // Continue with loading the cart items even if customer fetch fails
+        }
+      }
+
+      // Load order items to cart
+      if (result.cartItems && result.cartItems.length > 0) {
+        // Fetch full product details for each item
+        const { getPOSProducts } = await import('@/app/actions/pos');
+        const products = await getPOSProducts();
+
+        // Map cart items to full products
+        const newCartItems: CartItem[] = [];
+
+        for (const cartItem of result.cartItems) {
+          const product = products.find(p => p.id === cartItem.productId);
+
+          if (product) {
+            newCartItems.push({
+              product,
+              quantity: cartItem.quantity,
+              subtotal: cartItem.quantity * cartItem.price
+            });
+          }
+        }
+
+        setItems(newCartItems);
+        toast.success(`Order ${result.order?.orderNumber || ''} loaded with ${newCartItems.length} item(s)`);
+        return true;
+      } else {
+        toast.error('Order has no items');
+        return false;
+      }
+    } catch (error) {
+      console.error('Failed to load pending order:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to load order to cart');
+      return false;
+    }
+  }, []);
+
   const value: CartContextType = {
     items,
     customer,
@@ -192,6 +269,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     clearCart,
     setCustomer,
     setCustomerVerified,
+    loadPendingOrder,
     getItemQuantity
   };
 

@@ -44,6 +44,7 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const router = useRouter();
   const isInStock = product.quantity > 0;
@@ -58,10 +59,13 @@ export function ProductCard({
   const StrainIcon = strainType ? strainIcons[strainType] : null;
   const strainColor = strainType ? strainColors[strainType] : null;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (onAddToCart && isMember && isInStock) {
-      onAddToCart(product);
+    if (onAddToCart && isMember && isInStock && !isAdding) {
+      setIsAdding(true);
+      await onAddToCart(product);
+      // Brief visual feedback
+      setTimeout(() => setIsAdding(false), 1500);
     }
   };
 
@@ -302,21 +306,28 @@ export function ProductCard({
         {isMember ? (
           <Button
             onClick={handleAddToCart}
-            disabled={!isInStock}
+            disabled={!isInStock || isAdding}
             className={cn(
               "w-full transition-all duration-200",
-              isInStock
+              isInStock && !isAdding
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                : isInStock && isAdding
+                ? "bg-emerald-500 text-white"
                 : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
             )}
           >
-            {isInStock ? (
+            {!isInStock ? (
+              "Out of Stock"
+            ) : isAdding ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
               <>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart
               </>
-            ) : (
-              "Out of Stock"
             )}
           </Button>
         ) : (

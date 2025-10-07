@@ -1,20 +1,34 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Store, AlertCircle } from 'lucide-react';
+import { Loader2, Store, AlertCircle, Info } from 'lucide-react';
 
-export default function POSLoginPage() {
+function POSLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionMessage, setSessionMessage] = useState('');
+
+  // Check for session expiry or other reasons
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'session_expired') {
+      setSessionMessage('Your session has expired. Please sign in again.');
+    } else if (reason === 'invalid_token') {
+      setSessionMessage('Your session is invalid. Please sign in again.');
+    } else if (reason === 'session_inactive') {
+      setSessionMessage('Your kiosk session is inactive. Please sign in again.');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,8 +69,9 @@ export default function POSLoginPage() {
         localStorage.setItem('posUser', JSON.stringify(data.user));
       }
 
-      // Successful login - redirect to POS
-      router.push('/pos');
+      // Successful login - redirect to return URL or POS
+      const returnUrl = searchParams.get('returnUrl') || '/pos';
+      router.push(returnUrl);
       router.refresh();
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -81,6 +96,13 @@ export default function POSLoginPage() {
         </CardHeader>
 
         <CardContent>
+          {sessionMessage && (
+            <Alert className="mb-4 bg-blue-950/50 border-blue-900 text-blue-400">
+              <Info className="h-4 w-4" />
+              <AlertDescription>{sessionMessage}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-slate-200">
@@ -148,5 +170,17 @@ export default function POSLoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function POSLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <Loader2 className="w-8 h-8 text-green-400 animate-spin" />
+      </div>
+    }>
+      <POSLoginForm />
+    </Suspense>
   );
 }

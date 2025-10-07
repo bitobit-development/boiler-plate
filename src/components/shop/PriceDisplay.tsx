@@ -36,7 +36,8 @@ export function PriceDisplay({
     // Convert from cents to rands
     const rands = amount / 100;
 
-    const formatted = new Intl.NumberFormat("en-ZA", {
+    // Use en-US for consistent formatting (uses commas, which is what we want)
+    const formatted = new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(rands);

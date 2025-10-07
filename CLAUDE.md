@@ -33,9 +33,12 @@
 - `npx tsx src/lib/db/seed.ts` - Seed admin user & sample data
 - `npx tsx scripts/seed-admin-user.ts` - Seed admin user only
 - `npx tsx scripts/seed-shop-user.ts` - Seed shop/POS user
+- `npx tsx scripts/verify-online-cart-schema.ts` - Verify online cart schema (Phase 1)
 
 ### Testing Scripts
 - `npx tsx scripts/test-international-sms.ts` - Test SMS to international numbers (Clickatell API)
+- `npx tsx scripts/test-pending-order-sms.ts` - Test pending order SMS notifications
+- `npx tsx scripts/test-create-pending-order-with-sms.ts` - Integration test: Create pending order with SMS
 - `npx tsx scripts/test-admin-orders.ts` - Test admin orders functionality
 - `npx tsx scripts/test-orders-page.ts` - Test orders page
 - `npx tsx scripts/test-pos-order.ts` - Test POS order creation
@@ -87,16 +90,46 @@ scripts/              # Management scripts
 public/images/products/           # AI-generated product images (1792x1024)
 ```
 
-## AI Agents Quick Reference
-- **Rotem** (Strategy) - Architecture & technical planning
-- **Tal** (Frontend) - React components, UI/UX, Tailwind CSS
-- **Adi** (Fullstack) - APIs, Server Actions, database operations
-- **Uri** (Testing) - TDD, unit/integration tests
-- **Noam** (Prompts) - AI prompt engineering
-- **Yael** (Docs) - Technical documentation
+## AI Agents Reference
 
-**Usage**: `@agent-[name]` or "Hey [Name], [task]"
-**Example**: "Tal, create a responsive product card component"
+### Strategy Division
+- **Rotem** (`rotem-strategy`) - Project orchestrator for multi-agent coordination, task breakdown, and quality gates
+- **Eyal** (`eyal-strategy`) - Technical architect for system design, technology evaluation, and strategic planning
+
+### Design Division
+- **Tal** (`tal-design`) - Frontend engineer for UI/UX, React components, responsive design, and accessibility
+
+### Engineering Division
+- **Adi** (`adi-fullstack`) - Fullstack engineer for complete features (database to UI integration)
+- **Oren** (`oren-backend`) - Backend specialist for APIs, performance optimization, and security
+- **Gal** (`gal-database`) - Database architect for schema design, query optimization, and data modeling
+
+### Quality Division
+- **Uri** (`uri-testing`) - Testing engineer for TDD, Jest, integration tests, and coverage analysis
+- **Maya** (`maya-code-review`) - Code reviewer for quality, security, performance, and best practices
+
+### Documentation Division
+- **Yael** (`yael-technical-docs`) - Technical writer for user guides, architecture docs, and onboarding
+- **Amit** (`amit-api-docs`) - API documentation specialist for OpenAPI/Swagger and endpoint references
+
+### Tooling Division
+- **Noam** (`noam-prompt-engineering`) - Prompt engineer for crafting and optimizing AI prompts
+
+### Usage Patterns
+- **Direct invocation**: "Tal, create a responsive product card component"
+- **Multi-agent coordination**: "Rotem, build a user registration system"
+- **Specific agent**: Use the agent name in your request
+
+### Agent Selection Guide
+- **UI work only** → Tal
+- **Backend only** → Oren
+- **Database design** → Gal
+- **Full feature (UI + backend)** → Adi
+- **Complex multi-agent project** → Rotem
+- **Architecture decisions** → Eyal
+- **Testing** → Uri (mandatory before completion)
+- **Code review** → Maya
+- **Documentation** → Yael (technical) or Amit (API)
 
 ## Important Notes
 - Always use absolute paths in file operations

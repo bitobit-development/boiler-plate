@@ -39,6 +39,7 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 ]);
 
 export const orderStatusEnum = pgEnum("order_status", [
+  "pending",    // Added for online orders awaiting POS confirmation
   "draft",
   "confirmed",
   "fulfilled",
@@ -115,6 +116,7 @@ export const orders = pgTable("orders", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"), // When order was fulfilled
   cancelledAt: timestamp("cancelled_at"), // When order was cancelled
+  expiresAt: timestamp("expires_at"), // When pending order expires (online orders only)
 
   // Additional metadata
   metadata: jsonb("metadata").$type<Record<string, any>>(), // Flexible field for future extensions
@@ -132,6 +134,10 @@ export const orders = pgTable("orders", {
   shopUserStatusIdx: index("orders_shop_user_status_idx").on(table.shopUserId, table.status),
   kioskCreatedIdx: index("orders_kiosk_created_idx").on(table.kioskId, table.createdAt),
   subscriberCreatedIdx: index("orders_subscriber_created_idx").on(table.subscriberId, table.createdAt),
+  // Expiration indexes for pending orders
+  expiresAtIdx: index("orders_expires_at_idx").on(table.expiresAt),
+  statusExpiresIdx: index("orders_status_expires_idx").on(table.status, table.expiresAt),
+  subscriberStatusIdx: index("orders_subscriber_status_idx").on(table.subscriberId, table.status),
 }));
 
 // ====================================

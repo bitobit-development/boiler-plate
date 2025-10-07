@@ -11,6 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils/format';
 
+// Force dynamic rendering for this page (uses cookies for auth)
+export const dynamic = 'force-dynamic';
+
 // Types for the order data with relations
 export interface OrderWithRelations {
   id: string;

@@ -535,3 +535,16 @@ export * from "./schema/products";
 // RE-EXPORT ORDER SCHEMAS
 // ====================================
 export * from "./schema/orders";
+
+// ====================================
+// RE-EXPORT CART SCHEMAS
+// ====================================
+export * from "./schema/carts";
+
+// Re-export cart types explicitly for easier imports
+export type { Cart, NewCart, CartItem, CartWithTotals, CartItemValidation } from "./schema/carts";
+
+// ====================================
+// RE-EXPORT MEMBER PRICING SCHEMAS
+// ====================================
+export * from "./schema/member-pricing";
