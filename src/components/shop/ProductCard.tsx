@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PriceDisplay } from "./PriceDisplay";
+import { MemberLoginModal } from "./MemberLoginModal";
 import {
   ShoppingCart,
   Crown,
@@ -43,6 +44,7 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const router = useRouter();
   const isInStock = product.quantity > 0;
   const categoryName = product.category?.name || "Cannabis";
@@ -293,6 +295,7 @@ export function ProductCard({
           isMember={isMember}
           size="md"
           className="w-full"
+          onLoginClick={() => setLoginModalOpen(true)}
         />
 
         {/* Action Button */}
@@ -318,25 +321,22 @@ export function ProductCard({
           </Button>
         ) : (
           <Button
-            onClick={handleSubscribeClick}
-            disabled={isLoading}
+            onClick={() => setLoginModalOpen(true)}
             className={cn(
-              "w-full bg-amber-600 hover:bg-amber-500 text-white transition-all duration-200",
-              "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              "w-full bg-amber-600 hover:bg-amber-500 text-white transition-all duration-200"
             )}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Redirecting...
-              </>
-            ) : (
-              "Subscribe to Purchase"
-            )}
+            Subscribe to Purchase
           </Button>
         )}
         </CardFooter>
       </Card>
+
+      {/* Login Modal */}
+      <MemberLoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
     </TooltipProvider>
   );
 }

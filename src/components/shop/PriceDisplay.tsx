@@ -2,7 +2,8 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Crown, ArrowDown, Tag } from "lucide-react";
+import { Crown, ArrowDown, Tag, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PriceDisplayProps {
   price: number | null;
@@ -10,6 +11,7 @@ interface PriceDisplayProps {
   isMember?: boolean;
   size?: "sm" | "md" | "lg" | "xl";
   showCurrency?: boolean;
+  onLoginClick?: () => void;
   className?: string;
 }
 
@@ -19,8 +21,16 @@ export function PriceDisplay({
   isMember = false,
   size = "md",
   showCurrency = true,
+  onLoginClick,
   className,
 }: PriceDisplayProps) {
+  // Handle login click
+  const handleLoginClick = () => {
+    if (onLoginClick) {
+      onLoginClick();
+    }
+  };
+
   // Format price in Rands (convert from cents)
   const formatPrice = (amount: number) => {
     // Convert from cents to rands
@@ -113,42 +123,28 @@ export function PriceDisplay({
       </div>
     );
   } else {
-    // Non-member view - show both prices to entice subscription
+    // Non-member view - hide prices, show login prompt
     return (
       <div className={cn("flex flex-col gap-2", className)}>
-        {/* Regular price */}
-        <div className="flex items-center gap-2">
-          <span className={cn("text-zinc-400 text-sm")}>Regular Price:</span>
-          <span
-            className={cn(
-              "font-bold text-zinc-300",
-              smallerPriceSizeClasses[size]
-            )}
-          >
-            {formatPrice(price)}
-          </span>
-        </div>
+        {/* Login prompt button */}
+        <Button
+          onClick={handleLoginClick}
+          variant="outline"
+          className={cn(
+            "w-full border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-yellow-500/10",
+            "hover:from-amber-500/20 hover:to-yellow-500/20",
+            "text-amber-400 hover:text-amber-300",
+            "transition-all duration-200"
+          )}
+        >
+          <Lock className="h-4 w-4 mr-2" />
+          Login to See Price
+        </Button>
 
-        {/* Member price (highlighted to show benefit) */}
-        <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-lg border border-amber-500/20">
-          <Crown className="h-4 w-4 text-amber-400" />
-          <span className="text-sm font-medium text-amber-400">Member Price:</span>
-          <span
-            className={cn(
-              "font-bold text-amber-400",
-              priceSizeClasses[size],
-              "drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]"
-            )}
-          >
-            {formatPrice(memberPrice)}
-          </span>
-          <div className="flex items-center gap-1 ml-auto">
-            <ArrowDown className="h-3 w-3 text-amber-400" />
-            <span className="text-xs font-semibold text-amber-400">
-              Save R{Math.round(savings / 100)}
-            </span>
-          </div>
-        </div>
+        {/* Teaser text */}
+        <p className="text-xs text-center text-zinc-400">
+          Members save <span className="text-amber-400 font-semibold">20%</span> on all products
+        </p>
       </div>
     );
   }
